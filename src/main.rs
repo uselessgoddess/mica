@@ -32,7 +32,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .id();
 
       if rand::random_ratio(1, 5) {
-        commands.entity(tile_entity).insert(level::Wall).insert(TileColor::from(Color::BLACK));
+        commands
+          .entity(tile_entity)
+          .insert(level::Wall)
+          .insert(TileColor::from(Color::BLACK));
       }
 
       storage.set(&position, tile_entity);
@@ -41,7 +44,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
   }
 
   let (map_type, tile_size) =
-    (TilemapType::Square, TilemapTileSize { x: 16.0, y: 16.0 });
+    (TilemapType::Square, TilemapTileSize { x: 32.0, y: 32.0 });
   let grid_size = tile_size.into();
 
   commands.entity(tilemap).insert(TilemapBundle {
