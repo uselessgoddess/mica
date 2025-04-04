@@ -1,8 +1,8 @@
-#![feature(iter_map_windows)]
+#![feature(iter_map_windows, let_chains)]
 
 pub mod camera;
 pub mod core;
-mod debug;
+pub mod debug;
 pub mod level;
 pub mod sync;
 
@@ -19,9 +19,7 @@ pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
   fn build(&self, app: &mut App) {
-    app.add_plugins(CorePlugin)
-        // .init_state::<GameState>()
-    ;
+    app.add_plugins(CorePlugin).init_state::<GameState>();
   }
 }
 
@@ -29,5 +27,10 @@ impl Plugin for GamePlugin {
 pub mod prelude {
   pub use super::*;
 
-  pub use {super::core::*, bevy::prelude::*, ecs_tilemap::prelude::*};
+  pub use {
+    super::core::*,
+    bevy::prelude::*,
+    debug::{D, in_debug},
+    ecs_tilemap::prelude::*,
+  };
 }

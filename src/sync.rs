@@ -3,12 +3,12 @@ use crate::prelude::*;
 pub fn plugin(app: &mut App) {
   app
     .register_type::<Pos>()
-    .add_systems(PreUpdate, (storage, transform, tilepos));
+    .add_systems(PreUpdate, (storage, transform, tilepos).chain());
 }
 
 #[derive(Component, Deref, DerefMut)]
 pub struct Storage {
-  pub translation: Vec3,
+  pub translation: Vec2,
   #[deref]
   pub storage: TileStorage,
   pub grid_size: TilemapGridSize,
@@ -16,14 +16,13 @@ pub struct Storage {
 }
 
 impl Storage {
-  pub fn center_in_world(&self, pos: TilePos) -> Transform {
-    let translation = pos.center_in_world(&self.grid_size, &self.map_type)
-      + self.translation.xy();
-    Transform::from_translation(translation.extend(0.0))
+  pub fn center_in_world(&self, pos: impl Into<TilePos>) -> Vec2 {
+    self.translation
+      + pos.into().center_in_world(&self.grid_size, &self.map_type)
   }
 
   pub fn from_world_pos(&self, world: Transform) -> Option<TilePos> {
-    let world = world.translation.xy() - self.translation.xy();
+    let world = world.translation.xy() - self.translation;
     TilePos::from_world_pos(&world, &self.size, &self.grid_size, &self.map_type)
   }
 
@@ -51,7 +50,7 @@ fn storage(
 ) {
   for (entity, &transform, storage, &grid_size, &map_type) in storage.iter() {
     commands.entity(entity).insert(Storage {
-      translation: transform.translation,
+      translation: transform.translation.xy(),
       storage: storage.clone(),
       grid_size,
       map_type,
@@ -67,7 +66,7 @@ fn transform(
   let Ok(storage) = storage.get_single() else { return };
 
   for (entity, &pos, transform) in enemies.iter() {
-    let mut center = storage.center_in_world(pos);
+    let mut center = Transform::from_translation(storage.center_in_world(pos).extend(0.0));
     if let Some(transform) = transform {
       center.rotation = transform.rotation;
       center.scale = transform.scale;
@@ -97,13 +96,15 @@ impl From<Pos> for TilePos {
 
 fn tilepos(
   storage: Query<&Storage>,
-  enemies: Query<(Entity, &Transform), Without<TilePos>>,
+  enemies: Query<(Entity, &Transform, Option<&TilePos>)>,
   mut commands: Commands,
 ) {
   let Ok(storage) = storage.get_single() else { return };
 
-  for (entity, &transform) in enemies.iter() {
-    if let Some(pos) = storage.from_world_pos(transform).map(Pos::from) {
+  for (entity, &transform, tilepos) in enemies.iter() {
+    if let Some(pos) = tilepos.copied().map(Pos::from) {
+      commands.entity(entity).insert(pos);
+    } else if let Some(pos) = storage.from_world_pos(transform).map(Pos::from) {
       commands.entity(entity).insert(pos);
     }
   }

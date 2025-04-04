@@ -7,6 +7,7 @@ fn main() {
     .add_plugins(level::plugin)
     .add_systems(Startup, (setup, setup_tilemap))
     .add_systems(Update, camera::movement)
+    .insert_resource(D::L1)
     .run();
 }
 
@@ -16,7 +17,13 @@ fn setup(mut commands: Commands) {
   commands.spawn((level::Core, tilemap::center()));
 }
 
-fn setup_tilemap(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_tilemap(
+  mut commands: Commands,
+  asset_server: Res<AssetServer>,
+  mut next: ResMut<NextState<GameState>>,
+) {
+  next.set(GameState::Playing);
+
   let texture: Handle<Image> = asset_server.load("tiles/default.png");
 
   let tilemap = commands.spawn(Name::new("Tilemap")).id();
@@ -35,7 +42,7 @@ fn setup_tilemap(mut commands: Commands, asset_server: Res<AssetServer>) {
         })
         .id();
 
-      if rand::random_ratio(1, 5) {
+      if rand::random_ratio(1, 12) {
         commands
           .entity(tile_entity)
           .insert(level::Wall)
