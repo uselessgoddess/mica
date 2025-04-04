@@ -25,16 +25,14 @@ pub fn movement(
     }
 
     if keyboard_input.pressed(KeyCode::KeyZ) {
-      ortho.scale += 0.1;
+      ortho.scale += 0.1 * time.delta_secs() * 5.0;
     }
 
     if keyboard_input.pressed(KeyCode::KeyX) {
-      ortho.scale -= 0.1;
+      ortho.scale -= 0.1 * time.delta_secs() * 5.0;
     }
 
-    if ortho.scale < 0.5 {
-      ortho.scale = 0.5;
-    }
+    ortho.scale = ortho.scale.clamp(0.1, 1.0);
 
     let z = transform.translation.z;
     transform.translation += time.delta_secs() * direction * 500.;

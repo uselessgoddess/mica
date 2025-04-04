@@ -1,7 +1,10 @@
 mod dev;
+mod layers;
 pub mod noise;
 mod system;
 pub mod tilemap;
+
+pub use layers::layer;
 
 use crate::prelude::*;
 

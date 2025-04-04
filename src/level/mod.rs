@@ -1,3 +1,7 @@
+mod actors;
+
+pub use actors::*;
+
 use {
   crate::prelude::{core::tilemap, *},
   pathfinding::prelude::*,
@@ -17,6 +21,8 @@ pub struct Target(TilePos);
 pub struct Path(VecDeque<TilePos>);
 
 pub fn plugin(app: &mut App) {
+  app.add_plugins(actors::plugin);
+
   app.register_type::<Target>().register_type::<Path>().add_systems(
     Update,
     (spawn_enemies, fix_enemies, update_paths, promote_paths),
@@ -36,11 +42,11 @@ fn spawn_enemies(
 ) {
   let storage = storage.single();
 
-  if enemies.iter().count() < 16 {
+  if enemies.iter().count() < 32 * 4 {
     let mesh = meshes.add(Circle::new(5.0));
     let material = materials.add(Color::srgb(1.0, 0.0, 1.0));
 
-    commands.spawn(storage.center_in_world(tilemap::random())).insert((
+    commands.spawn(storage.center_in_world(tilemap::sample_border())).insert((
       Enemy,
       Mesh2d(mesh),
       MeshMaterial2d(material),
@@ -53,7 +59,7 @@ fn fix_enemies(
   mut commands: Commands,
 ) {
   for entity in enemies.iter() {
-    commands.entity(entity).insert(Target(tilemap::random()));
+    commands.entity(entity).insert(Target(tilemap::center()));
   }
 }
 
@@ -109,12 +115,16 @@ fn promote_paths(
   for (entity, mut transform, mut path) in enemies.iter_mut() {
     let edge = storage.center_in_world(*path.0.front().unwrap());
 
-    let decay = f32::ln(10.0) * 50.0;
-    transform.translation.smooth_nudge(
-      &edge.translation,
-      decay,
-      time.delta_secs(),
-    );
+    // let decay = f32::ln(10.0) * 500.0;
+    // transform.translation.smooth_nudge(
+    //   &edge.translation,
+    //   decay,
+    //   time.delta_secs() / 100.0,
+    // );
+
+    let direction = edge.translation - transform.translation;
+    transform.translation +=
+      direction.normalize_or_zero() * 64.0 * time.delta_secs();
 
     if (transform.translation - edge.translation).length() < 0.1 {
       path.pop_front();

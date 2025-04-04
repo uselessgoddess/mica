@@ -5,19 +5,23 @@ fn main() {
     .add_plugins(GamePlugin)
     .add_plugins(sync::plugin)
     .add_plugins(level::plugin)
-    .add_systems(Startup, setup)
+    .add_systems(Startup, (setup, setup_tilemap))
     .add_systems(Update, camera::movement)
     .run();
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(mut commands: Commands) {
   commands.spawn(Camera2d);
 
+  commands.spawn((level::Core, tilemap::center()));
+}
+
+fn setup_tilemap(mut commands: Commands, asset_server: Res<AssetServer>) {
   let texture: Handle<Image> = asset_server.load("tiles/default.png");
 
   let tilemap = commands.spawn(Name::new("Tilemap")).id();
 
-  let size = core::tilemap::SIZE;
+  let size = tilemap::SIZE;
   let mut storage = TileStorage::empty(size);
 
   for x in 0..size.x {
@@ -43,8 +47,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
   }
 
-  let (map_type, tile_size) =
-    (TilemapType::Square, TilemapTileSize { x: 32.0, y: 32.0 });
+  let (map_type, tile_size) = (TilemapType::Square, TilemapTileSize {
+    x: tilemap::TILE,
+    y: tilemap::TILE,
+  });
   let grid_size = tile_size.into();
 
   commands.entity(tilemap).insert(TilemapBundle {

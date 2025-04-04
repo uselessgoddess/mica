@@ -29,5 +29,5 @@ impl Plugin for GamePlugin {
 pub mod prelude {
   pub use super::*;
 
-  pub use {bevy::prelude::*, ecs_tilemap::prelude::*};
+  pub use {super::core::*, bevy::prelude::*, ecs_tilemap::prelude::*};
 }

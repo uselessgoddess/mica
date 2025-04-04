@@ -61,13 +61,18 @@ fn storage(
 
 fn transform(
   storage: Query<&Storage>,
-  enemies: Query<(Entity, &TilePos)>,
+  enemies: Query<(Entity, &TilePos, Option<&Transform>)>,
   mut commands: Commands,
 ) {
   let Ok(storage) = storage.get_single() else { return };
 
-  for (entity, &pos) in enemies.iter() {
-    commands.entity(entity).insert(storage.center_in_world(pos));
+  for (entity, &pos, transform) in enemies.iter() {
+    let mut center = storage.center_in_world(pos);
+    if let Some(transform) = transform {
+      center.rotation = transform.rotation;
+      center.scale = transform.scale;
+    }
+    commands.entity(entity).insert(center);
   }
 }
 
