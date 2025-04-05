@@ -1,5 +1,5 @@
 use crate::prelude::*;
 
-pub fn layer<const N: usize>() -> Transform {
-  Transform::from_xyz(0.0, 0.0, N as f32)
+pub fn layer<const N: usize>() -> Transform2D {
+  Transform2D::IDENTITY.with_layer(N as f32)
 }

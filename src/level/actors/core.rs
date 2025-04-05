@@ -10,7 +10,7 @@ pub fn plugin(app: &mut App) {
 #[require(TilePos)]
 pub struct Core;
 
-pub fn spawn(
+fn spawn(
   query: Query<Entity, Added<Core>>,
   mut commands: Commands,
   mut meshes: ResMut<Assets<Mesh>>,
@@ -40,9 +40,12 @@ pub fn spawn(
 }
 
 #[derive(Component)]
-pub struct RotateZ(f32);
+struct RotateZ(f32);
 
-pub fn rotate_z(mut query: Query<(&mut Transform, &RotateZ)>, time: Res<Time>) {
+fn rotate_z(
+  mut query: Query<(&mut Transform2D, &RotateZ)>,
+  time: Res<Time>,
+) {
   for (mut transform, &RotateZ(rotate)) in query.iter_mut() {
     transform.rotate_z(rotate * time.delta_secs());
   }

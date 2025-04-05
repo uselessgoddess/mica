@@ -21,8 +21,8 @@ impl Storage {
       + pos.into().center_in_world(&self.grid_size, &self.map_type)
   }
 
-  pub fn from_world_pos(&self, world: Transform) -> Option<TilePos> {
-    let world = world.translation.xy() - self.translation;
+  pub fn from_world_pos(&self, world: Transform2D) -> Option<TilePos> {
+    let world = world.translation - self.translation;
     TilePos::from_world_pos(&world, &self.size, &self.grid_size, &self.map_type)
   }
 
@@ -41,7 +41,7 @@ impl Storage {
 fn storage(
   storage: Query<(
     Entity,
-    &Transform,
+    &Transform2D,
     &TileStorage,
     &TilemapGridSize,
     &TilemapType,
@@ -50,7 +50,7 @@ fn storage(
 ) {
   for (entity, &transform, storage, &grid_size, &map_type) in storage.iter() {
     commands.entity(entity).insert(Storage {
-      translation: transform.translation.xy(),
+      translation: transform.translation,
       storage: storage.clone(),
       grid_size,
       map_type,
@@ -60,18 +60,17 @@ fn storage(
 
 fn transform(
   storage: Query<&Storage>,
-  enemies: Query<(Entity, &TilePos, Option<&Transform>)>,
+  enemies: Query<(Entity, &TilePos, Option<&Transform2D>)>,
   mut commands: Commands,
 ) {
   let Ok(storage) = storage.get_single() else { return };
 
   for (entity, &pos, transform) in enemies.iter() {
-    let mut center = Transform::from_translation(storage.center_in_world(pos).extend(0.0));
-    if let Some(transform) = transform {
-      center.rotation = transform.rotation;
-      center.scale = transform.scale;
-    }
-    commands.entity(entity).insert(center);
+    let transform = transform.copied().unwrap_or_default();
+    commands.entity(entity).insert(Transform2D {
+      translation: storage.center_in_world(pos),
+      ..transform
+    });
   }
 }
 
@@ -96,7 +95,7 @@ impl From<Pos> for TilePos {
 
 fn tilepos(
   storage: Query<&Storage>,
-  enemies: Query<(Entity, &Transform, Option<&TilePos>)>,
+  enemies: Query<(Entity, &Transform2D, Option<&TilePos>)>,
   mut commands: Commands,
 ) {
   let Ok(storage) = storage.get_single() else { return };
