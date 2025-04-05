@@ -7,6 +7,7 @@ edition = "2024"
 rand = "0.9"
 noise = "0.9"
 pathfinding = "4.14"
+num-traits = { version = "0.2", default-features = false }
 
 # bevy
 bevy = { version = "0.15" }

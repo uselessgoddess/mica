@@ -25,7 +25,7 @@ fn spawn(
           layer::<1>(),
           RotateZ(5.0),
           Mesh2d(mesh.clone()),
-          MeshMaterial2d(materials.add(Color::srgb(0.0, 0.0, 1.0))),
+          MeshMaterial2d(materials.add(Color::srgb(0.25, 0.0, 0.75))),
         ));
       })
       .with_children(|parent| {
@@ -33,7 +33,7 @@ fn spawn(
           layer::<2>(),
           RotateZ(-2.0),
           Mesh2d(mesh.clone()),
-          MeshMaterial2d(materials.add(Color::srgb(1.0, 0.0, 0.0))),
+          MeshMaterial2d(materials.add(Color::srgb(0.75, 0.0, 0.25))),
         ));
       });
   }
@@ -42,10 +42,7 @@ fn spawn(
 #[derive(Component)]
 struct RotateZ(f32);
 
-fn rotate_z(
-  mut query: Query<(&mut Transform2D, &RotateZ)>,
-  time: Res<Time>,
-) {
+fn rotate_z(mut query: Query<(&mut Transform2D, &RotateZ)>, time: Res<Time>) {
   for (mut transform, &RotateZ(rotate)) in query.iter_mut() {
     transform.rotate_z(rotate * time.delta_secs());
   }
