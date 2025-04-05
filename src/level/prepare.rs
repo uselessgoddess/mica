@@ -32,10 +32,10 @@ fn de_occupy(occupied: Query<Entity, With<Occupied>>, mut commands: Commands) {
   }
 }
 
-fn gizmos(occupied: Query<&Transform, With<Occupied>>, mut gizmos: Gizmos) {
+fn gizmos(occupied: Query<&Transform2D, With<Occupied>>, mut gizmos: Gizmos) {
   for &transform in occupied.iter() {
     gizmos.cross_2d(
-      transform.translation.xy(),
+      transform.translation,
       tilemap::TILE / 2.0,
       Color::srgb(1.0, 0.0, 0.0),
     )

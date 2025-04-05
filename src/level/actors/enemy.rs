@@ -47,7 +47,7 @@ fn spawn_enemies(
     let material = materials.add(Color::srgb(1.0, 0.0, 1.0));
 
     let transform =
-      Transform::from_translation(storage.center_in_world(sample).extend(0.0));
+      Transform2D::from_translation(storage.center_in_world(sample));
     commands.spawn(transform).insert((
       Enemy,
       Mesh2d(mesh),
@@ -105,7 +105,7 @@ fn update_paths(
 
 fn promote_paths(
   storage: Query<&sync::Storage>,
-  mut enemies: Query<(Entity, &mut Transform, &mut Path)>,
+  mut enemies: Query<(Entity, &mut Transform2D, &mut Path)>,
   mut commands: Commands,
   time: ResMut<Time>,
 ) {
@@ -119,8 +119,7 @@ fn promote_paths(
 
     let direction = edge - transform.translation.xy();
     transform.translation +=
-      (direction.normalize_or_zero() * 64.0 * 4.0 * time.delta_secs())
-        .extend(0.0);
+      direction.normalize_or_zero() * 64.0 * 4.0 * time.delta_secs();
 
     if (transform.translation.xy() - edge).length() < 0.1 {
       path.pop_front();
