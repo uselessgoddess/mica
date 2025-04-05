@@ -1,11 +1,18 @@
+pub mod bar;
 mod dev;
 mod layers;
 pub mod noise;
 mod system;
 pub mod tilemap;
 mod transform;
+mod utils;
 
-pub use {layers::layer, transform::Transform2D};
+pub use {
+  bar::{BarHeight, Bar, Percentage},
+  layers::layer,
+  transform::Transform2D,
+  utils::type_name,
+};
 
 use crate::prelude::*;
 

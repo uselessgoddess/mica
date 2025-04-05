@@ -4,7 +4,7 @@ pub fn plugin(app: &mut App) {
   app
     .register_type::<Transform2D>()
     .add_systems(First, spawn)
-    .add_systems(Last, sync);
+    .add_systems(PostUpdate, sync);
 }
 
 pub fn spawn(
@@ -43,6 +43,13 @@ impl Transform2D {
     Self { translation, ..Self::IDENTITY }
   }
 
+  #[must_use]
+  pub const fn with_scale(mut self, scale: Vec2) -> Self {
+    self.scale = scale;
+    self
+  }
+
+  #[must_use]
   pub const fn with_layer(mut self, layer: f32) -> Self {
     self.layer = layer;
     self

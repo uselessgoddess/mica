@@ -2867,6 +2867,7 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy_ecs_tilemap",
  "noise",
+ "num-traits",
  "pathfinding",
  "rand 0.9.0",
 ]

@@ -32,5 +32,6 @@ pub mod prelude {
     bevy::prelude::*,
     debug::{D, in_debug},
     ecs_tilemap::prelude::*,
+    num_traits as num,
   };
 }

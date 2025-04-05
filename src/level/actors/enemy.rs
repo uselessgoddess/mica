@@ -4,12 +4,24 @@ use {
   std::collections::VecDeque,
 };
 
+#[derive(Reflect)]
+pub struct Health;
+
+impl Percentage for Health {
+  type Item = f32;
+
+  fn value(value: f32, limit: f32) -> f32 {
+    value / limit
+  }
+}
+
 pub fn plugin(app: &mut App) {
   app
     .register_type::<Target>()
     .register_type::<Path>()
     .add_systems(Update, (spawn_enemies, update_paths, promote_paths).chain())
-    .add_systems(Update, gizmos.run_if(in_debug(D::L2)));
+    .add_systems(Update, gizmos.run_if(in_debug(D::L2)))
+    .add_plugins(bar::plugin::<Health>);
 }
 
 #[derive(Component)]
@@ -50,6 +62,7 @@ fn spawn_enemies(
       Transform2D::from_translation(storage.center_in_world(sample));
     commands.spawn(transform).insert((
       Enemy,
+      Bar::<Health>::new(100.0),
       Mesh2d(mesh),
       MeshMaterial2d(material),
       Target(tilemap::center()),
