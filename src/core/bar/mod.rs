@@ -1,7 +1,6 @@
 use {
   crate::prelude::*,
   bevy::reflect::{GetTypeRegistration, Typed},
-  std::hash::Hash,
 };
 
 mod settings;
@@ -33,7 +32,7 @@ pub trait Percentage: TypePath + Send + Sync + 'static {
 
 /// Range of any bar values
 #[derive(Reflect)]
-struct Payload<P: Percentage> {
+pub struct Payload<P: Percentage> {
   value: P::Item,
   limit: P::Item,
 }
@@ -48,9 +47,7 @@ impl<P: Percentage> Payload<P> {
   }
 
   pub fn set(&mut self, value: P::Item) {
-    if value >= num::zero() && value < self.limit {
-      self.value = value;
-    }
+    self.value = num::clamp(value, num::zero(), self.limit);
   }
 
   pub fn inc(&mut self, value: P::Item) {
@@ -58,15 +55,24 @@ impl<P: Percentage> Payload<P> {
   }
 
   pub fn dec(&mut self, value: P::Item) {
-    self.set(self.value - value);
+    if value >= self.value {
+      self.value = num::zero();
+    } else {
+      self.value = self.value - value;
+    }
+  }
+
+  pub fn is_empty(&self) -> bool {
+    self.value == num::zero()
   }
 }
 
 #[derive(Copy, Clone, Component)]
 struct Repr(Entity, Entity);
 
-#[derive(Component, Reflect)]
+#[derive(Component, Reflect, Deref, DerefMut)]
 pub struct Bar<P: Percentage> {
+  #[deref]
   payload: Payload<P>,
   settings: Settings,
 }
@@ -82,7 +88,7 @@ impl<P: Percentage> Bar<P> {
   }
 }
 
-pub fn spawn<P: Percentage>(
+fn spawn<P: Percentage>(
   mut query: Query<(Entity, &Bar<P>, Option<&mut Repr>), Changed<Bar<P>>>,
   mut q_scale: Query<&mut Transform2D>,
   mut commands: Commands,
@@ -92,7 +98,7 @@ pub fn spawn<P: Percentage>(
 ) {
   for (entity, Bar { payload, settings }, repr) in query.iter_mut() {
     let mesh = meshes.add(Rectangle::new(1.0, 1.0));
-    let mut modify = |transform: &mut Transform2D, width| {
+    let modify = |transform: &mut Transform2D, width| {
       transform.translation.y = settings.offset;
       transform.scale = Vec2::new(width, settings.absolute_height());
     };
@@ -100,14 +106,14 @@ pub fn spawn<P: Percentage>(
     let width = settings.width;
     if let Some(Repr(fore, back)) = repr.as_deref().copied() {
       if let Ok(mut transform) = q_scale.get_mut(fore) {
-        modify(&mut transform, width);
+        modify(&mut transform, width * payload.value());
       }
       if let Ok(mut transform) = q_scale.get_mut(back) {
-        modify(&mut transform, width * payload.value());
+        modify(&mut transform, width);
       }
       continue;
     }
-    let mut transform = |layer, width| {
+    let transform = |layer, width| {
       let mut transform = Transform2D::IDENTITY;
       modify(&mut transform, width);
       transform.layer = layer;

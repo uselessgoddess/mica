@@ -14,7 +14,13 @@ fn main() {
 fn setup(mut commands: Commands) {
   commands.spawn(Camera2d);
 
-  commands.spawn((level::Core, tilemap::center()));
+  let center = tilemap::center();
+  commands.spawn((level::Core, center));
+
+  commands.spawn((level::Turret, TilePos { x: center.x + 1, ..center }));
+  commands.spawn((level::Turret, TilePos { x: center.x - 1, ..center }));
+  commands.spawn((level::Turret, TilePos { y: center.y + 1, ..center }));
+  commands.spawn((level::Turret, TilePos { y: center.y - 1, ..center }));
 }
 
 fn setup_tilemap(

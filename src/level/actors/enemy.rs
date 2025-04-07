@@ -1,19 +1,11 @@
 use {
-  crate::{level::Occupied, prelude::*},
+  crate::{
+    level::{DamageEvent, Health, Occupied, OnDeath},
+    prelude::*,
+  },
   pathfinding::prelude::*,
   std::collections::VecDeque,
 };
-
-#[derive(Reflect)]
-pub struct Health;
-
-impl Percentage for Health {
-  type Item = f32;
-
-  fn value(value: f32, limit: f32) -> f32 {
-    value / limit
-  }
-}
 
 pub fn plugin(app: &mut App) {
   app
@@ -21,7 +13,8 @@ pub fn plugin(app: &mut App) {
     .register_type::<Path>()
     .add_systems(Update, (spawn_enemies, update_paths, promote_paths).chain())
     .add_systems(Update, gizmos.run_if(in_debug(D::L2)))
-    .add_plugins(bar::plugin::<Health>);
+    .add_systems(Update, (poison_system, on_death))
+    .add_systems(Startup, setup);
 }
 
 #[derive(Component)]
@@ -35,6 +28,40 @@ pub struct Target(TilePos);
 
 #[derive(Debug, Component, Reflect, Deref, DerefMut)]
 pub struct Path(VecDeque<TilePos>);
+
+fn setup(mut commands: Commands) {
+  commands
+    .spawn(Text2d::new("0"))
+    .insert(Transform::from_translation(Vec3::new(-750.0, 0.0, 0.0)))
+    .insert(TextFont::default().with_font_size(192.0))
+    .insert(TextColor::BLACK);
+}
+
+fn poison_system(
+  mut events: EventWriter<DamageEvent>,
+  query: Query<Entity, With<Enemy>>,
+  time: Res<Time>,
+) {
+  for entity in query.iter() {
+    events.send(DamageEvent { entity, damage: 5.0 * time.delta_secs() });
+  }
+}
+
+fn on_death(
+  mut text: Query<&mut Text2d>,
+  query: Query<(), With<Enemy>>,
+  mut death: EventReader<OnDeath>,
+  mut commands: Commands,
+) {
+  for &OnDeath(entity) in death.read() {
+    if let Ok(_) = query.get(entity) {
+      let mut text = text.iter_mut().next().unwrap();
+      text.0 = (text.0.parse::<i32>().unwrap() + 1).to_string();
+
+      commands.entity(entity).despawn_recursive();
+    }
+  }
+}
 
 fn spawn_enemies(
   storage: Query<&sync::Storage>,
@@ -102,9 +129,7 @@ fn update_paths(
 
     if let Some(path) = bfs(
       &(x, y),
-      |&(x, y)| {
-        successors(x, y).into_iter().filter_map(|x| x).collect::<Vec<_>>()
-      },
+      |&(x, y)| successors(x, y).into_iter().flatten().collect::<Vec<_>>(),
       |&(x, y)| x == target.x && y == target.y,
     ) {
       commands.entity(entity).insert(Path(
@@ -132,7 +157,7 @@ fn promote_paths(
 
     let direction = edge - transform.translation.xy();
     transform.translation +=
-      direction.normalize_or_zero() * 64.0 * 4.0 * time.delta_secs();
+      direction.normalize_or_zero() * 64.0 * time.delta_secs();
 
     if (transform.translation.xy() - edge).length() < 0.1 {
       path.pop_front();
