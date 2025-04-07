@@ -8,7 +8,7 @@ pub fn plugin(app: &mut App) {
 }
 
 #[derive(Component)]
-struct Reprojection2D(Transform2D);
+struct Reprojection(Transform);
 
 fn spawn(
   query: Query<(Entity, &Transform), Added<Transform>>,
@@ -21,22 +21,19 @@ fn spawn(
 
 fn sync_2d(query: Query<(Entity, &Transform2D)>, mut commands: Commands) {
   for (entity, &transform) in query.iter() {
-    commands
-      .entity(entity)
-      .insert((Transform::from(transform), Reprojection2D(transform)));
+    let transform = Transform::from(transform);
+    commands.entity(entity).insert(transform).insert(Reprojection(transform));
   }
 }
 
 fn sync_3d(
-  mut query: Query<(&mut Transform2D, Option<&Transform>, &Reprojection2D)>,
+  mut query: Query<(&mut Transform2D, Option<&Transform>, &Reprojection)>,
 ) {
-  for (mut master, slave, &Reprojection2D(proj)) in query.iter_mut() {
-    let Some(slave) = slave.copied().map(Transform2D::from) else {
-      continue;
-    };
-
-    if slave != proj {
-      *master = slave;
+  for (mut master, slave, &Reprojection(proj)) in query.iter_mut() {
+    if let Some(&slave) = slave
+      && slave != proj
+    {
+      *master = Transform2D::from(proj);
     }
   }
 }

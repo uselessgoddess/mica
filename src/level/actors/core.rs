@@ -48,3 +48,12 @@ fn rotate_z(mut query: Query<(&mut Transform2D, &RotateZ)>, time: Res<Time>) {
     transform.rotate_z(rotate * time.delta_secs());
   }
 }
+
+#[test]
+fn rotate_ne() {
+  let mut transform = Transform2D::IDENTITY;
+
+  transform.rotate_z(12.34567890);
+
+  assert_ne!(transform, Transform2D::from(Transform::from(transform)));
+}
