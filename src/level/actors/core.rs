@@ -20,6 +20,7 @@ fn spawn(
     let mesh = meshes.add(Rectangle::from_length(tilemap::TILE * 0.7));
     commands
       .entity(entity)
+      .insert(Visibility::default())
       .with_children(|parent| {
         parent.spawn((
           layer::<1>(),
