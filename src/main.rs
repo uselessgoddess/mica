@@ -3,16 +3,17 @@ use mica::prelude::*;
 fn main() {
   App::new()
     .add_plugins(GamePlugin)
-    .add_plugins(sync::plugin)
-    .add_plugins(level::plugin)
     .add_systems(Startup, (setup, setup_tilemap))
-    .add_systems(Update, camera::movement)
     .insert_resource(D::L1)
     .run();
 }
 
 fn setup(mut commands: Commands) {
-  commands.spawn(Camera2d);
+  commands.spawn((Camera2d, PanCam {
+    grab_buttons: vec![MouseButton::Left, MouseButton::Middle],
+    speed: 500.0,
+    ..default()
+  }));
 
   let center = tilemap::center();
   commands.spawn((level::Core, center));

@@ -4,10 +4,13 @@ pub fn plugin(app: &mut App) {
   app
     .register_type::<Transform2D>()
     .add_systems(First, spawn)
-    .add_systems(PostUpdate, sync);
+    .add_systems(PostUpdate, (sync_3d, sync_2d).chain());
 }
 
-pub fn spawn(
+#[derive(Component)]
+struct Reprojection2D(Transform2D);
+
+fn spawn(
   query: Query<(Entity, &Transform), Added<Transform>>,
   mut commands: Commands,
 ) {
@@ -16,9 +19,25 @@ pub fn spawn(
   }
 }
 
-pub fn sync(query: Query<(Entity, &Transform2D)>, mut commands: Commands) {
+fn sync_2d(query: Query<(Entity, &Transform2D)>, mut commands: Commands) {
   for (entity, &transform) in query.iter() {
-    commands.entity(entity).insert(Transform::from(transform));
+    commands
+      .entity(entity)
+      .insert((Transform::from(transform), Reprojection2D(transform)));
+  }
+}
+
+fn sync_3d(
+  mut query: Query<(&mut Transform2D, Option<&Transform>, &Reprojection2D)>,
+) {
+  for (mut master, slave, &Reprojection2D(proj)) in query.iter_mut() {
+    let Some(slave) = slave.copied().map(Transform2D::from) else {
+      continue;
+    };
+
+    if slave != proj {
+      *master = slave;
+    }
   }
 }
 
