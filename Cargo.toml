@@ -7,6 +7,7 @@ edition = "2024"
 rand = "0.9"
 noise = "0.9"
 pathfinding = "4.14"
+num-traits = { version = "0.2", default-features = false }
 
 # bevy
 bevy = { version = "0.15" }
@@ -14,6 +15,7 @@ bevy = { version = "0.15" }
 # plugins
 ecs-tilemap = { package = "bevy_ecs_tilemap", version = "0.15" }
 inspector-egui = { package = "bevy-inspector-egui", version = "0.29" }
+pancam = { package = "bevy_pancam", version = "0.17", features = ["bevy_egui"] }
 
 [features]
 debug = ["bevy/dynamic_linking"]

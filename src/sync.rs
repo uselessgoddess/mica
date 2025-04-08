@@ -3,12 +3,12 @@ use crate::prelude::*;
 pub fn plugin(app: &mut App) {
   app
     .register_type::<Pos>()
-    .add_systems(PreUpdate, (storage, transform, tilepos));
+    .add_systems(PreUpdate, (storage, transform, tilepos).chain());
 }
 
 #[derive(Component, Deref, DerefMut)]
 pub struct Storage {
-  pub translation: Vec3,
+  pub translation: Vec2,
   #[deref]
   pub storage: TileStorage,
   pub grid_size: TilemapGridSize,
@@ -16,14 +16,13 @@ pub struct Storage {
 }
 
 impl Storage {
-  pub fn center_in_world(&self, pos: TilePos) -> Transform {
-    let translation = pos.center_in_world(&self.grid_size, &self.map_type)
-      + self.translation.xy();
-    Transform::from_translation(translation.extend(0.0))
+  pub fn center_in_world(&self, pos: impl Into<TilePos>) -> Vec2 {
+    self.translation
+      + pos.into().center_in_world(&self.grid_size, &self.map_type)
   }
 
-  pub fn from_world_pos(&self, world: Transform) -> Option<TilePos> {
-    let world = world.translation.xy() - self.translation.xy();
+  pub fn from_world_pos(&self, world: Transform2D) -> Option<TilePos> {
+    let world = world.translation - self.translation;
     TilePos::from_world_pos(&world, &self.size, &self.grid_size, &self.map_type)
   }
 
@@ -42,7 +41,7 @@ impl Storage {
 fn storage(
   storage: Query<(
     Entity,
-    &Transform,
+    &Transform2D,
     &TileStorage,
     &TilemapGridSize,
     &TilemapType,
@@ -61,13 +60,17 @@ fn storage(
 
 fn transform(
   storage: Query<&Storage>,
-  enemies: Query<(Entity, &TilePos)>,
+  enemies: Query<(Entity, &TilePos, Option<&Transform2D>)>,
   mut commands: Commands,
 ) {
   let Ok(storage) = storage.get_single() else { return };
 
-  for (entity, &pos) in enemies.iter() {
-    commands.entity(entity).insert(storage.center_in_world(pos));
+  for (entity, &pos, transform) in enemies.iter() {
+    let transform = transform.copied().unwrap_or_default();
+    commands.entity(entity).insert(Transform2D {
+      translation: storage.center_in_world(pos),
+      ..transform
+    });
   }
 }
 
@@ -92,13 +95,15 @@ impl From<Pos> for TilePos {
 
 fn tilepos(
   storage: Query<&Storage>,
-  enemies: Query<(Entity, &Transform), Without<TilePos>>,
+  enemies: Query<(Entity, &Transform2D, Option<&TilePos>)>,
   mut commands: Commands,
 ) {
   let Ok(storage) = storage.get_single() else { return };
 
-  for (entity, &transform) in enemies.iter() {
-    if let Some(pos) = storage.from_world_pos(transform).map(Pos::from) {
+  for (entity, &transform, tilepos) in enemies.iter() {
+    if let Some(pos) = tilepos.copied().map(Pos::from) {
+      commands.entity(entity).insert(pos);
+    } else if let Some(pos) = storage.from_world_pos(transform).map(Pos::from) {
       commands.entity(entity).insert(pos);
     }
   }
