@@ -33,7 +33,7 @@ fn sync_3d(
     if let Some(&slave) = slave
       && slave != proj
     {
-      *master = Transform2D::from(proj);
+      *master = Transform2D::from(slave);
     }
   }
 }
