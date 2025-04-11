@@ -10,7 +10,7 @@ mod utils;
 
 pub use {
   bar::{Bar, BarHeight, Percentage},
-  ecs::{Effect, Sensor},
+  ecs::{Affect, AppExt as _, Effect, Sensor},
   layers::layer,
   transform::Transform2D,
   utils::type_name,

@@ -1,6 +1,6 @@
 use {
   super::Enemy,
-  crate::{level::DamageEvent, prelude::*},
+  crate::{level::Damage, prelude::*},
 };
 
 pub fn plugin(app: &mut App) {
@@ -26,18 +26,20 @@ fn spawn(
 fn attack(
   query: Query<(Entity, &Transform2D), With<Turret>>,
   enemies: Query<(Entity, &Transform2D), With<Enemy>>,
-  mut damage: EventWriter<DamageEvent>,
+  mut events: EventWriter<Affect<Damage>>,
   mut gizmos: Gizmos,
   time: Res<Time>,
 ) {
+  let damage = Damage(10.0 * time.delta_secs());
   for (_, a) in query.iter() {
     let enemy = enemies
       .iter()
       .map(|(entity, b)| (entity, b, (a.translation - b.translation).length()))
       .min_by(|(_, _, a), (_, _, b)| f32::total_cmp(a, b));
-    if let Some((entity, b, _)) = enemy {
-      damage.send(DamageEvent { entity, damage: 10.0 * time.delta_secs() });
-      gizmos.line_2d(a.translation, b.translation, Color::srgb(0.0, 1.0, 0.0));
-    }
+
+    let Some((entity, b, _)) = enemy else { continue };
+
+    gizmos.line_2d(a.translation, b.translation, Color::srgb(0.0, 1.0, 0.0));
+    events.send(Affect::new(entity).effect(damage));
   }
 }

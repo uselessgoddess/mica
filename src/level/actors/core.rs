@@ -1,6 +1,6 @@
 use {
   super::SpawnSet,
-  crate::{core::Sensor, level::effects, prelude::*},
+  crate::{core::Sensor, level::Death, prelude::*},
 };
 
 pub fn plugin(app: &mut App) {
@@ -24,7 +24,7 @@ fn spawn(
     commands
       .entity(entity)
       .insert(Visibility::default())
-      .insert((Sensor(effects::Death), Collider::circle(tilemap::TILE * 0.25)))
+      .insert((Sensor(Death), Collider::circle(tilemap::TILE * 0.25)))
       .with_children(|parent| {
         parent.spawn((
           layer::<1>(),

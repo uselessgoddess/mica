@@ -1,6 +1,6 @@
 use {
   crate::{
-    level::{DamageEvent, DeathEvent, Health, Occupied},
+    level::{Damage, Death, Health, Occupied},
     prelude::*,
   },
   pathfinding::prelude::*,
@@ -29,21 +29,22 @@ pub struct Target(TilePos);
 pub struct Path(VecDeque<TilePos>);
 
 fn poison_system(
-  mut events: EventWriter<DamageEvent>,
+  mut events: EventWriter<Affect<Damage>>,
   query: Query<Entity, With<Enemy>>,
   time: Res<Time>,
 ) {
+  let damage = Damage(5.0 * time.delta_secs());
   for entity in query.iter() {
-    events.send(DamageEvent { entity, damage: 5.0 * time.delta_secs() });
+    events.send(Affect::new(entity).effect(damage));
   }
 }
 
 fn on_death(
   query: Query<(), With<Enemy>>,
-  mut death: EventReader<DeathEvent>,
+  mut death: EventReader<Affect<Death>>,
   mut commands: Commands,
 ) {
-  for &DeathEvent(entity) in death.read() {
+  for &Affect { entity, .. } in death.read() {
     if query.get(entity).is_ok() {
       commands.entity(entity).despawn_recursive();
     }
