@@ -1,5 +1,5 @@
 use crate::{
-  level::{Damage, Enemy},
+  level::{Damage, Enemy, turret::MonitorTargets},
   prelude::*,
 };
 
@@ -8,6 +8,7 @@ pub fn plugin(app: &mut App) {
 }
 
 #[derive(Component, Reflect)]
+#[require(super::Turret)]
 pub struct Laser;
 
 fn spawn(
@@ -24,22 +25,24 @@ fn spawn(
 }
 
 fn attack(
-  query: Query<(Entity, &Transform2D), With<Laser>>,
-  enemies: Query<(Entity, &Transform2D), With<Enemy>>,
+  turrets: Query<(&Transform2D, &MonitorTargets), With<Laser>>,
+  enemies: Query<&Transform2D, With<Enemy>>,
   mut events: EventWriter<Affect<Damage>>,
   mut gizmos: Gizmos,
   time: Res<Time>,
 ) {
   let damage = Damage(10.0 * time.delta_secs());
-  for (_, a) in query.iter() {
-    let enemy = enemies
-      .iter()
-      .map(|(entity, b)| (entity, b, (a.translation - b.translation).length()))
-      .min_by(|(_, _, a), (_, _, b)| f32::total_cmp(a, b));
 
-    let Some((entity, b, _)) = enemy else { continue };
-
-    gizmos.line_2d(a.translation, b.translation, Color::srgb(0.0, 1.0, 0.0));
-    events.send(Affect::new(entity).effect(damage));
+  for (from, monitor) in turrets.iter() {
+    if let Some((_, target)) = monitor.first().copied()
+      && let Ok(to) = enemies.get(target)
+    {
+      events.send(Affect::new(target).effect(damage));
+      gizmos.line_2d(
+        from.translation,
+        to.translation,
+        Color::srgb(0.0, 1.0, 0.0),
+      );
+    }
   }
 }
