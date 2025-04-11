@@ -2,12 +2,11 @@ use crate::prelude::*;
 
 mod core;
 pub mod enemy;
-mod turret;
+pub mod turret;
 
 pub use {
   core::Core,
   enemy::{Enemy, Wall},
-  turret::Turret,
 };
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
