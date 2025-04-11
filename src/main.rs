@@ -1,4 +1,4 @@
-use mica::prelude::*;
+use mica::{level::turret, prelude::*};
 
 fn main() {
   App::new()
@@ -9,19 +9,22 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-  commands.spawn((Camera2d, PanCam {
-    grab_buttons: vec![MouseButton::Left, MouseButton::Middle],
-    speed: 500.0,
-    ..default()
-  }));
+  commands.spawn((
+    Camera2d,
+    PanCam {
+      grab_buttons: vec![MouseButton::Left, MouseButton::Middle],
+      speed: 500.0,
+      ..default()
+    },
+  ));
 
   let center = tilemap::center();
   commands.spawn((level::Core, center));
 
-  commands.spawn((level::Turret, TilePos { x: center.x + 1, ..center }));
-  commands.spawn((level::Turret, TilePos { x: center.x - 1, ..center }));
-  commands.spawn((level::Turret, TilePos { y: center.y + 1, ..center }));
-  commands.spawn((level::Turret, TilePos { y: center.y - 1, ..center }));
+  commands.spawn((turret::Laser, TilePos { x: center.x + 1, ..center }));
+  commands.spawn((turret::Laser, TilePos { x: center.x - 1, ..center }));
+  commands.spawn((turret::Laser, TilePos { y: center.y + 1, ..center }));
+  commands.spawn((turret::Laser, TilePos { y: center.y - 1, ..center }));
 }
 
 fn setup_tilemap(
@@ -61,10 +64,10 @@ fn setup_tilemap(
     }
   }
 
-  let (map_type, tile_size) = (TilemapType::Square, TilemapTileSize {
-    x: tilemap::TILE,
-    y: tilemap::TILE,
-  });
+  let (map_type, tile_size) = (
+    TilemapType::Square,
+    TilemapTileSize { x: tilemap::TILE, y: tilemap::TILE },
+  );
   let grid_size = tile_size.into();
 
   commands.entity(tilemap).insert(TilemapBundle {

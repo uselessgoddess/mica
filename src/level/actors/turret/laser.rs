@@ -1,17 +1,17 @@
-use {
-  super::Enemy,
-  crate::{level::Damage, prelude::*},
+use crate::{
+  level::{Damage, Enemy},
+  prelude::*,
 };
 
 pub fn plugin(app: &mut App) {
-  app.register_type::<Turret>().add_systems(Update, (spawn, attack));
+  app.register_type::<Laser>().add_systems(Update, (spawn, attack));
 }
 
 #[derive(Component, Reflect)]
-pub struct Turret;
+pub struct Laser;
 
 fn spawn(
-  query: Query<Entity, Added<Turret>>,
+  query: Query<Entity, Added<Laser>>,
   mut commands: Commands,
   mut meshes: ResMut<Assets<Mesh>>,
   mut materials: ResMut<Assets<ColorMaterial>>,
@@ -24,7 +24,7 @@ fn spawn(
 }
 
 fn attack(
-  query: Query<(Entity, &Transform2D), With<Turret>>,
+  query: Query<(Entity, &Transform2D), With<Laser>>,
   enemies: Query<(Entity, &Transform2D), With<Enemy>>,
   mut events: EventWriter<Affect<Damage>>,
   mut gizmos: Gizmos,
