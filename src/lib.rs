@@ -33,8 +33,9 @@ pub mod prelude {
 
   pub use {
     super::core::*,
+    avian2d::prelude::{Sensor as ColliderSensor, *},
     bevy::prelude::*,
-    debug::{D, in_debug},
+    debug::{AppExt, D, in_debug},
     ecs_tilemap::prelude::*,
     num_traits as num,
     pancam::*,

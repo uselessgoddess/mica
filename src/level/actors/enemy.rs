@@ -1,6 +1,6 @@
 use {
   crate::{
-    level::{DamageEvent, Health, Occupied, OnDeath},
+    level::{DamageEvent, DeathEvent, Health, Occupied},
     prelude::*,
   },
   pathfinding::prelude::*,
@@ -12,9 +12,8 @@ pub fn plugin(app: &mut App) {
     .register_type::<Target>()
     .register_type::<Path>()
     .add_systems(Update, (spawn_enemies, update_paths, promote_paths).chain())
-    .add_systems(Update, gizmos.run_if(in_debug(D::L2)))
     .add_systems(Update, (poison_system, on_death))
-    .add_systems(Startup, setup);
+    .add_systems(Update, gizmos.run_if(in_debug(D::L2)));
 }
 
 #[derive(Component)]
@@ -29,14 +28,6 @@ pub struct Target(TilePos);
 #[derive(Debug, Component, Reflect, Deref, DerefMut)]
 pub struct Path(VecDeque<TilePos>);
 
-fn setup(mut commands: Commands) {
-  commands
-    .spawn(Text2d::new("0"))
-    .insert(Transform::from_translation(Vec3::new(-750.0, 0.0, 0.0)))
-    .insert(TextFont::default().with_font_size(192.0))
-    .insert(TextColor::BLACK);
-}
-
 fn poison_system(
   mut events: EventWriter<DamageEvent>,
   query: Query<Entity, With<Enemy>>,
@@ -48,16 +39,12 @@ fn poison_system(
 }
 
 fn on_death(
-  mut text: Query<&mut Text2d>,
   query: Query<(), With<Enemy>>,
-  mut death: EventReader<OnDeath>,
+  mut death: EventReader<DeathEvent>,
   mut commands: Commands,
 ) {
-  for &OnDeath(entity) in death.read() {
-    if let Ok(_) = query.get(entity) {
-      let mut text = text.iter_mut().next().unwrap();
-      text.0 = (text.0.parse::<i32>().unwrap() + 1).to_string();
-
+  for &DeathEvent(entity) in death.read() {
+    if query.get(entity).is_ok() {
       commands.entity(entity).despawn_recursive();
     }
   }
@@ -87,13 +74,16 @@ fn spawn_enemies(
 
     let transform =
       Transform2D::from_translation(storage.center_in_world(sample));
-    commands.spawn(transform).insert((
-      Enemy,
-      Bar::<Health>::new(100.0),
-      Mesh2d(mesh),
-      MeshMaterial2d(material),
-      Target(tilemap::center()),
-    ));
+    commands
+      .spawn(transform)
+      .insert((
+        Enemy,
+        Bar::<Health>::new(100.0),
+        Mesh2d(mesh),
+        MeshMaterial2d(material),
+        Target(tilemap::center()),
+      ))
+      .insert(Collider::circle(5.0));
   }
 }
 
@@ -122,19 +112,17 @@ fn update_paths(
   };
 
   for (entity, target, &sync::Pos { x, y }) in enemies.iter() {
-    if x == 15 && y == 15 {
-      commands.entity(entity).despawn_recursive();
-      return;
-    }
-
     if let Some(path) = bfs(
       &(x, y),
       |&(x, y)| successors(x, y).into_iter().flatten().collect::<Vec<_>>(),
       |&(x, y)| x == target.x && y == target.y,
     ) {
-      commands.entity(entity).insert(Path(
-        path.into_iter().skip(1).map(|(x, y)| TilePos::new(x, y)).collect(),
-      ));
+      let mut path: VecDeque<_> =
+        path.into_iter().map(|(x, y)| TilePos::new(x, y)).collect();
+      if path.len() > 1 {
+        path.pop_front();
+      }
+      commands.entity(entity).insert(Path(path));
     } else {
       commands.entity(entity);
     }

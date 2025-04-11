@@ -10,7 +10,7 @@ pub fn plugin(app: &mut App) {
   app
     .register_type::<Occupied>()
     .add_systems(PreUpdate, occupy.in_set(LevelSet::Prepare))
-    .add_systems(Update, gizmos.run_if(in_debug(D::L2)))
+    .add_systems(Update, gizmos.run_if(in_debug(D::L3)))
     .add_systems(PostUpdate, de_occupy);
 }
 

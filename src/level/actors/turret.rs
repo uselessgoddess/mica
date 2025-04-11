@@ -36,7 +36,7 @@ fn attack(
       .map(|(entity, b)| (entity, b, (a.translation - b.translation).length()))
       .min_by(|(_, _, a), (_, _, b)| f32::total_cmp(a, b));
     if let Some((entity, b, _)) = enemy {
-      damage.send(DamageEvent { entity, damage: 50.0 * time.delta_secs() });
+      damage.send(DamageEvent { entity, damage: 10.0 * time.delta_secs() });
       gizmos.line_2d(a.translation, b.translation, Color::srgb(0.0, 1.0, 0.0));
     }
   }

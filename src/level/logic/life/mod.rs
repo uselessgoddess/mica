@@ -6,14 +6,14 @@ pub use health::Health;
 
 pub fn plugin(app: &mut App) {
   app
-    .add_event::<OnDeath>()
+    .add_event::<DeathEvent>()
     .add_event::<DamageEvent>()
     .add_plugins(health::plugin)
     .add_systems(Update, (damage, death));
 }
 
 #[derive(Event, Debug, Copy, Clone)]
-pub struct OnDeath(pub Entity);
+pub struct DeathEvent(pub Entity);
 
 #[derive(Event, Debug, Copy, Clone)]
 pub struct DamageEvent {
@@ -34,11 +34,11 @@ fn damage(
 
 fn death(
   query: Query<(Entity, &Bar<Health>)>,
-  mut damage: EventWriter<OnDeath>,
+  mut damage: EventWriter<DeathEvent>,
 ) {
   for (entity, health) in query.iter() {
     if health.is_empty() {
-      damage.send(OnDeath(entity));
+      damage.send(DeathEvent(entity));
     }
   }
 }

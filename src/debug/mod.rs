@@ -21,3 +21,13 @@ pub fn in_debug(level: D) -> impl FnMut(Option<Res<D>>) -> bool + Clone {
     level <= debug.as_deref().copied().unwrap_or(D::None)
   }
 }
+
+pub trait AppExt {
+  fn is_debug(&self, level: D) -> bool;
+}
+
+impl AppExt for App {
+  fn is_debug(&self, level: D) -> bool {
+    level <= *self.world().resource::<D>()
+  }
+}

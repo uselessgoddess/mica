@@ -2,9 +2,9 @@ use mica::prelude::*;
 
 fn main() {
   App::new()
+    .insert_resource(D::L3)
     .add_plugins(GamePlugin)
     .add_systems(Startup, (setup, setup_tilemap))
-    .insert_resource(D::L1)
     .run();
 }
 
