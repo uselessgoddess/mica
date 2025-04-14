@@ -24,7 +24,7 @@ fn spawn(
     commands
       .entity(entity)
       .insert(Visibility::default())
-      .insert((Sensor(Death), Collider::circle(tilemap::TILE * 0.25)))
+      .insert((Sensor::new(Death), Collider::circle(tilemap::TILE * 0.25)))
       .with_children(|parent| {
         parent.spawn((
           layer::<1>(),

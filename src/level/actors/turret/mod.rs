@@ -1,11 +1,12 @@
 mod laser;
+mod rocket;
 
 use {
   crate::{level::Enemy, prelude::*},
   std::collections::BTreeSet,
 };
 
-pub use laser::Laser;
+pub use {laser::Laser, rocket::Rocket};
 
 #[derive(Component, Reflect, Default)]
 #[require(MonitorTargets)]
@@ -15,6 +16,7 @@ pub fn plugin(app: &mut App) {
   app
     .register_type::<Turret>()
     .add_plugins(laser::plugin)
+    .add_plugins(rocket::plugin)
     .add_systems(Update, prepare_targets);
 }
 

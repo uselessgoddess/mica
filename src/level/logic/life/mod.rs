@@ -1,45 +1,38 @@
 use crate::prelude::*;
 
 mod health;
+mod period;
 
-pub use health::Health;
+pub use {health::Health, period::Period};
 
 pub fn plugin(app: &mut App) {
   app
     .add_effect::<Death>()
     .add_effect::<Damage>()
     .add_plugins(health::plugin)
-    .add_systems(Update, (damage, death));
+    .add_plugins(period::plugin)
+    .add_systems(Update, death)
+    .add_observer(damage);
 }
 
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Event, Debug, Default, Copy, Clone)]
 pub struct Death;
 
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Event, Debug, Default, Copy, Clone)]
 pub struct Damage(pub f32);
 
-// todo!: implement derive-macro
-impl Effect for Death {}
-impl Effect for Damage {}
+fn damage(trigger: Trigger<Damage>, mut query: Query<&mut Bar<Health>>) {
+  let (entity, Damage(damage)) = trigger.read_event();
 
-fn damage(
-  mut query: Query<&mut Bar<Health>>,
-  mut damage: EventReader<Affect<Damage>>,
-) {
-  for &Affect { entity, effect: Damage(damage), .. } in damage.read() {
-    if let Ok(mut health) = query.get_mut(entity) {
-      health.dec(damage);
-    }
+  if let Ok(mut health) = query.get_mut(entity) {
+    health.dec(damage);
   }
 }
 
-fn death(
-  query: Query<(Entity, &Bar<Health>)>,
-  mut damage: EventWriter<Affect<Death>>,
-) {
+fn death(query: Query<(Entity, &Bar<Health>)>, mut commands: Commands) {
   for (entity, health) in query.iter() {
     if health.is_empty() {
-      damage.send(Affect::new(entity));
+      commands.entity(entity).trigger(Death);
     }
   }
 }

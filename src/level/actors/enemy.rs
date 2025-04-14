@@ -12,8 +12,9 @@ pub fn plugin(app: &mut App) {
     .register_type::<Target>()
     .register_type::<Path>()
     .add_systems(Update, (spawn_enemies, update_paths, promote_paths).chain())
-    .add_systems(Update, (poison_system, on_death))
-    .add_systems(Update, gizmos.run_if(in_debug(D::L2)));
+    .add_systems(Update, poison_system)
+    .add_systems(Update, gizmos.run_if(in_debug(D::L2)))
+    .add_observer(on_death);
 }
 
 #[derive(Component)]
@@ -29,25 +30,26 @@ pub struct Target(TilePos);
 pub struct Path(VecDeque<TilePos>);
 
 fn poison_system(
-  mut events: EventWriter<Affect<Damage>>,
   query: Query<Entity, With<Enemy>>,
+  mut commands: Commands,
   time: Res<Time>,
 ) {
   let damage = Damage(5.0 * time.delta_secs());
   for entity in query.iter() {
-    events.send(Affect::new(entity).effect(damage));
+    commands.entity(entity).trigger(damage);
   }
 }
 
+// TODO: use custom system to filter by components like
 fn on_death(
+  trigger: Trigger<Death>,
   query: Query<(), With<Enemy>>,
-  mut death: EventReader<Affect<Death>>,
   mut commands: Commands,
 ) {
-  for &Affect { entity, .. } in death.read() {
-    if query.get(entity).is_ok() {
-      commands.entity(entity).despawn_recursive();
-    }
+  let (entity, _) = trigger.read_event();
+
+  if query.get(entity).is_ok() {
+    commands.entity(entity).despawn_recursive();
   }
 }
 
@@ -80,11 +82,10 @@ fn spawn_enemies(
       .insert((
         Enemy,
         Bar::<Health>::new(100.0),
-        Mesh2d(mesh),
-        MeshMaterial2d(material),
         Target(tilemap::center()),
+        Collider::circle(5.0),
       ))
-      .insert(Collider::circle(5.0));
+      .insert((Mesh2d(mesh), MeshMaterial2d(material)));
   }
 }
 
@@ -146,7 +147,7 @@ fn promote_paths(
 
     let direction = edge - transform.translation.xy();
     transform.translation +=
-      direction.normalize_or_zero() * 64.0 * time.delta_secs();
+      direction.normalize_or_zero() * 64.0 / 4.0 * time.delta_secs();
 
     if (transform.translation.xy() - edge).length() < 0.1 {
       path.pop_front();
