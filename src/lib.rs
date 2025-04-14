@@ -33,7 +33,7 @@ pub mod prelude {
 
   pub use {
     super::core::*,
-    avian2d::prelude::{Sensor as ColliderSensor, *},
+    avian2d::prelude::*,
     bevy::prelude::*,
     debug::{AppExt, D, in_debug},
     ecs_tilemap::prelude::*,

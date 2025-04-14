@@ -1,80 +1,81 @@
 use crate::prelude::*;
 
-pub trait Effect: Default + Clone + Send + Sync + 'static {}
-
-#[derive(Event)]
-pub struct Affect<E: Effect> {
-  /// Affected entity by event
-  pub entity: Entity,
-  /// Entity who cause this event
-  pub cause: Option<Entity>,
-  /// Payload of the `Effect`
-  pub effect: E,
-}
-
-impl<E: Effect> Affect<E> {
-  pub fn new(entity: Entity) -> Self {
-    Self { entity, cause: None, effect: E::default() }
-  }
-
-  pub fn cause(mut self, cause: Entity) -> Self {
-    self.cause = Some(cause);
-    self
-  }
-
-  pub fn effect(mut self, effect: E) -> Self {
-    self.effect = effect;
-    self
-  }
-}
-
-#[derive(Event)]
-pub struct Affected(pub Entity);
+#[derive(Event, Copy, Clone)]
+pub struct Affect;
 
 pub fn plugin(app: &mut App) {
-  app.add_event::<Affected>();
+  app.add_effect::<Nothing>().add_event::<Affect>();
 }
 
-pub fn effect<E: Effect>(app: &mut App) {
-  app
-    .add_event::<Affect<E>>()
-    .add_event::<Affected>()
-    .add_systems(Update, sensor::<E>);
+pub fn effect<E: Event + Clone>(app: &mut App) {
+  app.add_systems(Update, sensor::<E>).add_observer(
+    |trigger: Trigger<OnAdd, Sensor<E>>,
+     query: Query<&Sensor<E>>,
+     mut commands: Commands| {
+      if let entity = trigger.entity()
+        && let Ok(sensor) = query.get(entity)
+        && sensor.sensor
+      {
+        commands.entity(entity).insert(avian2d::prelude::Sensor);
+      }
+    },
+  );
 }
+
+#[derive(Event, Copy, Clone)]
+pub struct Nothing;
 
 #[derive(Component)]
-#[require(ColliderSensor, CollidingEntities)]
-pub struct Sensor<E>(pub E);
+#[require(CollidingEntities)]
+pub struct Sensor<E: Event = Nothing> {
+  sensor: bool,
+  effect: E,
+}
 
-impl<E: Effect> Sensor<E> {
-  pub fn effect(&self) -> E {
-    self.0.clone()
+impl Sensor<Nothing> {
+  pub fn none(sensor: bool) -> Self {
+    Self { sensor, effect: Nothing }
   }
 }
 
-fn sensor<E: Effect>(
+impl<E: Event> Sensor<E> {
+  pub fn new(effect: E) -> Self {
+    Self { effect, sensor: true }
+  }
+
+  pub fn with_sensor(mut self, sensor: bool) -> Self {
+    self.sensor = sensor;
+    self
+  }
+}
+
+impl<E: Event + Clone> Sensor<E> {
+  pub fn effect(&self) -> E {
+    self.effect.clone()
+  }
+}
+
+fn sensor<E: Event + Clone>(
   query: Query<(Entity, &Sensor<E>, &CollidingEntities)>,
-  mut events: EventWriter<Affect<E>>,
-  mut back: EventWriter<Affected>,
+  mut commands: Commands,
 ) {
   for (entity, sensor, entities) in query.iter() {
-    events.send_batch(
-      entities
-        .iter()
-        .map(|&who| Affect::new(who).cause(entity).effect(sensor.effect())),
+    commands.trigger_targets(
+      sensor.effect(),
+      entities.iter().copied().collect::<Vec<_>>(),
     );
     if !entities.is_empty() {
-      back.send(Affected(entity));
+      commands.entity(entity).trigger(Affect);
     }
   }
 }
 
 pub trait AppExt {
-  fn add_effect<E: Effect>(&mut self) -> &mut Self;
+  fn add_effect<E: Event + Clone>(&mut self) -> &mut Self;
 }
 
 impl AppExt for App {
-  fn add_effect<E: Effect>(&mut self) -> &mut Self {
-    self.add_plugins(effect::<E>)
+  fn add_effect<E: Event + Clone>(&mut self) -> &mut Self {
+    self.add_event::<E>().add_plugins(effect::<E>)
   }
 }

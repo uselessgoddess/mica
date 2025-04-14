@@ -10,7 +10,7 @@ mod utils;
 
 pub use {
   bar::{Bar, BarHeight, Percentage},
-  ecs::{Affect, AppExt as _, Effect, Sensor},
+  ecs::{Affect, AppExt as _, Sensor, TriggerExt as _},
   layers::layer,
   transform::Transform2D,
   utils::type_name,
@@ -28,6 +28,8 @@ impl Plugin for CorePlugin {
       .add_plugins(transform::plugin) // todo!: move to `ecs` mod
       .add_plugins(ecs::plugin)
       .add_plugins(PhysicsPlugins::default());
+
+    app.insert_resource(Gravity::ZERO);
 
     if debug::dev() {
       app.add_plugins(dev::plugin);

@@ -27,7 +27,7 @@ fn spawn(
 fn attack(
   turrets: Query<(&Transform2D, &MonitorTargets), With<Laser>>,
   enemies: Query<&Transform2D, With<Enemy>>,
-  mut events: EventWriter<Affect<Damage>>,
+  mut commands: Commands,
   mut gizmos: Gizmos,
   time: Res<Time>,
 ) {
@@ -37,7 +37,7 @@ fn attack(
     if let Some((_, target)) = monitor.first().copied()
       && let Ok(to) = enemies.get(target)
     {
-      events.send(Affect::new(target).effect(damage));
+      commands.entity(target).trigger(damage);
       gizmos.line_2d(
         from.translation,
         to.translation,

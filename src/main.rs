@@ -21,8 +21,10 @@ fn setup(mut commands: Commands) {
   let center = tilemap::center();
   commands.spawn((level::Core, center));
 
-  commands.spawn((turret::Laser, TilePos { x: center.x + 1, ..center }));
-  commands.spawn((turret::Laser, TilePos { x: center.x - 1, ..center }));
+  commands
+    .spawn((turret::Rocket::default(), TilePos { x: center.x + 1, ..center }));
+  commands
+    .spawn((turret::Rocket::default(), TilePos { x: center.x - 1, ..center }));
   commands.spawn((turret::Laser, TilePos { y: center.y + 1, ..center }));
   commands.spawn((turret::Laser, TilePos { y: center.y - 1, ..center }));
 }

@@ -71,6 +71,12 @@ impl Transform2D {
     self
   }
 
+  #[must_use]
+  pub const fn add_layer(mut self, layer: f32) -> Self {
+    self.layer += layer;
+    self
+  }
+
   pub fn rotate(&mut self, rotation: Rot2) {
     self.rotation = rotation * self.rotation;
   }
