@@ -8,7 +8,7 @@ use crate::{
 
 use {
   explosion::Explosion,
-  missile::{Flaps, Missile, Thrust},
+  missile::{Flaps, Fuse, Missile, Thrust},
 };
 
 pub fn plugin(app: &mut App) {
@@ -61,6 +61,7 @@ fn attack(
         (
           Thrust { fuel: 2.0, ..default() },
           Missile { target: enemy.translation },
+          Fuse { sens: tilemap::TILE * 0.5 },
         ),
       ));
     }
