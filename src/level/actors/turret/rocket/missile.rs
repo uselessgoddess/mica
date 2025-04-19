@@ -8,7 +8,10 @@ use super::Explosion;
 pub fn plugin(app: &mut App) {
   app
     .register_type::<Missile>()
-    .add_systems(Update, (spawn, thrust, guide, gizmos.run_if(in_debug(D::L2))))
+    .add_systems(
+      Update,
+      (spawn, thrust, guide, fuse, gizmos.run_if(in_debug(D::L2))),
+    )
     .add_observer(on_affect)
     .add_observer(on_death);
 }
@@ -20,6 +23,12 @@ pub struct Flaps(f32);
 pub struct Thrust {
   pub thrust: f32,
   pub fuel: f32,
+}
+
+#[derive(Component)]
+pub struct Fuse {
+  /// Radio trigger radius
+  pub sens: f32,
 }
 
 #[derive(Component, Reflect)]
@@ -65,6 +74,19 @@ fn spawn(
   }
 }
 
+fn fuse(
+  mut query: Query<(Entity, &Fuse, &Missile, &Transform2D)>,
+  mut commands: Commands,
+) {
+  for (entity, fuse, missile, Transform2D { translation, .. }) in
+    query.iter_mut()
+  {
+    if translation.distance(missile.target) < fuse.sens {
+      commands.entity(entity).trigger(Death);
+    }
+  }
+}
+
 fn thrust(
   mut query: Query<(&Transform2D, &mut Thrust, &mut ExternalForce)>,
   time: Res<Time>,
@@ -80,9 +102,9 @@ fn thrust(
 }
 
 fn guide(
-  mut query: Query<(&Flaps, &Missile, &mut Transform2D, &mut ExternalTorque)>,
+  mut query: Query<(&Flaps, &Missile, &Transform2D, &mut ExternalTorque)>,
 ) {
-  for (flaps, missile, mut transform, mut torque) in query.iter_mut() {
+  for (flaps, missile, transform, mut torque) in query.iter_mut() {
     let direction = transform.rotation * Vec2::Y;
 
     let to_target =
