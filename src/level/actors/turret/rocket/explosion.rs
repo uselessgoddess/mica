@@ -4,8 +4,6 @@ use crate::{
   prelude::*,
 };
 
-use super::Missile;
-
 pub fn plugin(app: &mut App) {
   app
     .register_type::<Explosion>()
@@ -60,7 +58,7 @@ fn on_death(
 ) {
   let (entity, _) = trigger.read_event();
 
-  if let Ok(&transform) = query.get(entity) {
+  if query.get(entity).is_ok() {
     commands.entity(entity).despawn_recursive();
   }
 }

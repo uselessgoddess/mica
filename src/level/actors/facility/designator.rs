@@ -40,7 +40,7 @@ fn spawn(
 fn neighbors(
   storage: Single<&sync::Storage>,
   mut query: Query<(&sync::Pos, &mut Neighbors)>,
-  mut turrets: Query<(Entity, &sync::Pos), With<Turret>>,
+  turrets: Query<(Entity, &sync::Pos), With<Turret>>,
   mut commands: Commands,
 ) {
   use ecs_tilemap::helpers::square_grid::neighbors::Neighbors as TileNeighbors;
@@ -58,7 +58,7 @@ fn neighbors(
     // TODO: implement custom areas in the future
     neighbors.0 = turrets
       .iter()
-      .filter(|&(entity, &pos)| area.contains(&TilePos::from(pos)))
+      .filter(|&(_, pos)| area.contains(&TilePos::from(*pos)))
       .map(|(entity, _)| entity)
       .collect();
 

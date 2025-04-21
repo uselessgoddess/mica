@@ -45,7 +45,7 @@ impl Eq for Target {}
 
 impl PartialOrd for Target {
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    self.len.partial_cmp(&other.len)
+    Some(self.cmp(other))
   }
 }
 
@@ -78,8 +78,8 @@ fn self_monitor(
   >,
   enemies: Query<(Entity, &Transform2D), With<Enemy>>,
 ) {
-  turrets.iter_mut().for_each(
-    |(entity, mut monitor, &Transform2D { translation: a, .. })| {
+  turrets.par_iter_mut().for_each(
+    |(_, mut monitor, &Transform2D { translation: a, .. })| {
       let targets: BTreeSet<_> = enemies
         .iter()
         .map(|(entity, &Transform2D { translation: b, .. })| {
