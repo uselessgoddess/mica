@@ -1,5 +1,5 @@
 use crate::{
-  level::{Death, Enemy, Projectile},
+  level::{Death, Projectile},
   prelude::{core::Sensor, *},
 };
 

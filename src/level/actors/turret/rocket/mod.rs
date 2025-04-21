@@ -2,14 +2,16 @@ mod explosion;
 mod missile;
 
 use crate::{
-  level::{Damage, Enemy, Period, turret::MonitorTargets},
+  level::{
+    Enemy,
+    turret::{MonitorTargets, Target},
+  },
   prelude::*,
 };
 
 use {
-  crate::level::turret::Target,
   explosion::Explosion,
-  missile::{Flaps, Fuse, Missile, Thrust},
+  missile::{Fuse, Missile, Thrust},
 };
 
 pub fn plugin(app: &mut App) {

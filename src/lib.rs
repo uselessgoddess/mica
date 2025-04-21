@@ -1,4 +1,5 @@
 #![feature(iter_map_windows, let_chains)]
+#![allow(irrefutable_let_patterns)]
 
 pub mod core;
 pub mod debug;
