@@ -1,5 +1,8 @@
 use crate::{
-  level::{Damage, Enemy, turret::MonitorTargets},
+  level::{
+    Damage, Enemy,
+    turret::{MonitorTargets, Target},
+  },
   prelude::*,
 };
 
@@ -34,7 +37,7 @@ fn attack(
   let damage = Damage(10.0 * time.delta_secs());
 
   for (from, monitor) in turrets.iter() {
-    if let Some((_, target)) = monitor.first().copied()
+    if let Some(Target { entity: Some(target), .. }) = monitor.first().copied()
       && let Ok(to) = enemies.get(target)
     {
       commands.entity(target).trigger(damage);

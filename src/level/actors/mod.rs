@@ -2,6 +2,7 @@ use crate::prelude::*;
 
 mod core;
 pub mod enemy;
+pub mod facility;
 pub mod turret;
 
 pub use {
@@ -16,7 +17,10 @@ pub struct SpawnSet;
 pub fn plugin(app: &mut App) {
   app
     .configure_sets(Update, SpawnSet.run_if(in_state(GameState::Playing)))
-    .add_plugins(core::plugin)
-    .add_plugins(enemy::plugin)
-    .add_plugins(turret::plugin);
+    .add_plugins((
+      core::plugin,
+      enemy::plugin,
+      turret::plugin,
+      facility::plugin,
+    ));
 }
