@@ -1,4 +1,7 @@
-use mica::{level::turret, prelude::*};
+use mica::{
+  level::{facility, turret},
+  prelude::*,
+};
 
 fn main() {
   App::new()
@@ -21,10 +24,10 @@ fn setup(mut commands: Commands) {
   let center = tilemap::center();
   commands.spawn((level::Core, center));
 
-  commands
-    .spawn((turret::Rocket::default(), TilePos { x: center.x + 1, ..center }));
-  commands
-    .spawn((turret::Rocket::default(), TilePos { x: center.x - 1, ..center }));
+  commands.spawn((turret::Rocket::default(), TilePos { x: 16, y: 15 }));
+  commands.spawn((facility::Designator, TilePos { x: 17, y: 15 }));
+  commands.spawn((turret::Rocket::default(), TilePos { x: 18, y: 15 }));
+
   commands.spawn((turret::Laser, TilePos { y: center.y + 1, ..center }));
   commands.spawn((turret::Laser, TilePos { y: center.y - 1, ..center }));
 }

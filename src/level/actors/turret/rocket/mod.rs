@@ -7,6 +7,7 @@ use crate::{
 };
 
 use {
+  crate::level::turret::Target,
   explosion::Explosion,
   missile::{Flaps, Fuse, Missile, Thrust},
 };
@@ -51,7 +52,7 @@ fn attack(
   time: Res<Time>,
 ) {
   for (&transform, monitor, mut rocket) in turrets.iter_mut() {
-    if let Some((_, target)) = monitor.first().copied()
+    if let Some(Target { entity: Some(target), .. }) = monitor.first().copied()
       && let Ok(enemy) = enemies.get(target).copied()
       && rocket.cooldown.tick(time.delta()).just_finished()
     {
