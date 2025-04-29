@@ -1,24 +1,25 @@
+mod effects;
 mod explosion;
 mod missile;
+mod thrust;
 
-use crate::{
-  level::{
-    Enemy,
-    turret::{MonitorTargets, Target},
-  },
-  prelude::*,
+use crate::prelude::*;
+
+use crate::level::{
+  Enemy,
+  turret::{MonitorTargets, Target},
 };
 
 use {
   explosion::Explosion,
-  missile::{Fuse, Missile, Thrust},
+  missile::{Fuse, Missile, MissileMetadata},
+  thrust::Thrust,
 };
 
 pub fn plugin(app: &mut App) {
   app
     .register_type::<Rocket>()
-    .add_plugins(missile::plugin)
-    .add_plugins(explosion::plugin)
+    .add_plugins((missile::plugin, explosion::plugin, thrust::plugin))
     .add_systems(Update, (spawn, attack));
 }
 
@@ -62,8 +63,8 @@ fn attack(
         Name::new("Missile"),
         transform.add_layer(1.0),
         (
+          Missile { target: enemy.translation, radius: tilemap::TILE },
           Thrust { fuel: 2.0, ..default() },
-          Missile { target: enemy.translation },
           Fuse { sens: tilemap::TILE * 0.5 },
         ),
       ));

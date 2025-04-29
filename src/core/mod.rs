@@ -3,6 +3,7 @@ mod dev;
 pub mod ecs;
 mod layers;
 pub mod noise;
+pub mod physics;
 mod system;
 pub mod tilemap;
 mod transform;
@@ -27,7 +28,8 @@ impl Plugin for CorePlugin {
       .add_plugins(tilemap::plugin)
       .add_plugins(transform::plugin) // todo!: move to `ecs` mod
       .add_plugins(ecs::plugin)
-      .add_plugins(PhysicsPlugins::default());
+      .add_plugins(PhysicsPlugins::default())
+      .add_plugins(HanabiPlugin);
 
     app.insert_resource(Gravity::ZERO);
 

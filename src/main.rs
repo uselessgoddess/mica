@@ -11,9 +11,12 @@ fn main() {
     .run();
 }
 
+use bevy::core_pipeline::bloom::Bloom;
+
 fn setup(mut commands: Commands) {
   commands.spawn((
     Camera2d,
+    (Camera { hdr: true, ..default() }, Bloom::OLD_SCHOOL),
     PanCam {
       grab_buttons: vec![MouseButton::Left, MouseButton::Middle],
       speed: 500.0,
@@ -55,6 +58,7 @@ fn setup_tilemap(
           tilemap_id: TilemapId(tilemap),
           ..Default::default()
         })
+        .insert(TileColor::from(Color::srgb(0.75, 0.75, 0.75)))
         .id();
 
       if rand::random_ratio(1, 12) {
@@ -69,10 +73,10 @@ fn setup_tilemap(
     }
   }
 
-  let (map_type, tile_size) = (
-    TilemapType::Square,
-    TilemapTileSize { x: tilemap::TILE, y: tilemap::TILE },
-  );
+  let (map_type, tile_size) = (TilemapType::Square, TilemapTileSize {
+    x: tilemap::TILE,
+    y: tilemap::TILE,
+  });
   let grid_size = tile_size.into();
 
   commands.entity(tilemap).insert(TilemapBundle {
