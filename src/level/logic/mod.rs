@@ -1,13 +1,23 @@
+mod follow;
 mod life;
 mod projectile;
 
 use crate::prelude::*;
 
 pub use {
+  follow::Follow,
   life::{Damage, Death, Health, Period},
   projectile::Projectile,
 };
 
 pub fn plugin(app: &mut App) {
-  app.add_plugins(life::plugin).add_plugins(projectile::plugin);
+  app.register_type::<ChildOf>().add_plugins((
+    life::plugin,
+    projectile::plugin,
+    follow::plugin,
+  ));
 }
+
+/// Just a joke, rename to `Parent` after bevy 0.16
+#[derive(Component, Reflect)]
+pub struct ChildOf(pub Entity);

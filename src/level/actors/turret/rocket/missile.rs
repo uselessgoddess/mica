@@ -1,13 +1,15 @@
-use crate::{
-  level::{Death, Projectile},
-  prelude::{core::Sensor, *},
+use {
+  super::{Explosion, effects, thrust::Thrust},
+  crate::{
+    level::{Death, Period, Projectile},
+    prelude::{core::Sensor, *},
+  },
 };
-
-use super::Explosion;
 
 pub fn plugin(app: &mut App) {
   app
     .register_type::<Missile>()
+    .register_type::<MissileMetadata>()
     .add_systems(
       Update,
       (spawn, thrust, guide, fuse, gizmos.run_if(in_debug(D::L2))),
@@ -20,12 +22,6 @@ pub fn plugin(app: &mut App) {
 pub struct Flaps(f32);
 
 #[derive(Component)]
-pub struct Thrust {
-  pub thrust: f32,
-  pub fuel: f32,
-}
-
-#[derive(Component)]
 pub struct Fuse {
   /// Radio trigger radius
   pub sens: f32,
@@ -35,6 +31,8 @@ pub struct Fuse {
 #[require(Projectile, Thrust, Flaps)]
 pub struct Missile {
   pub target: Vec2,
+  /// Explosion radius
+  pub radius: f32,
 }
 
 impl Default for Flaps {
@@ -43,17 +41,18 @@ impl Default for Flaps {
   }
 }
 
-impl Default for Thrust {
-  fn default() -> Self {
-    Self { thrust: 10000.0, fuel: 1.0 }
-  }
+#[derive(Component, Reflect)]
+pub struct MissileMetadata {
+  pub explosion: Handle<EffectAsset>,
+  pub contrail: Handle<EffectAsset>,
 }
 
-fn spawn(
+pub(crate) fn spawn(
   query: Query<Entity, Added<Missile>>,
   mut commands: Commands,
   mut meshes: ResMut<Assets<Mesh>>,
   mut materials: ResMut<Assets<ColorMaterial>>,
+  mut effects: ResMut<Assets<EffectAsset>>,
 ) {
   let (width, height) = (tilemap::TILE * 0.12, tilemap::TILE * 0.25);
 
@@ -64,13 +63,18 @@ fn spawn(
       .entity(entity)
       .insert((
         RigidBody::Dynamic,
+        physics::projectile(),
         Sensor::none(false),
         ExternalForce::default().with_persistence(false),
         ExternalTorque::default().with_persistence(false),
         Collider::rectangle(width, height),
       ))
       .insert((LinearDamping(0.3), AngularDamping(2.5)))
-      .insert((Mesh2d(mesh), MeshMaterial2d(material)));
+      .insert((Mesh2d(mesh), MeshMaterial2d(material)))
+      .insert(MissileMetadata {
+        explosion: effects.add(effects::explosion()),
+        contrail: effects.add(effects::contrail()),
+      });
   }
 }
 
@@ -140,13 +144,21 @@ fn on_affect(
 
 fn on_death(
   trigger: Trigger<Death>,
-  query: Query<&Transform2D, With<Missile>>,
+  query: Query<(&Transform2D, &Missile, &MissileMetadata)>,
   mut commands: Commands,
 ) {
   let (entity, _) = trigger.read_event();
 
-  if let Ok(&transform) = query.get(entity) {
-    commands.spawn((transform, Explosion { radius: 64.0, damage: 100.0 }));
+  if let Ok((&transform, missile, MissileMetadata { explosion, .. })) =
+    query.get(entity)
+  {
+    commands
+      .spawn((transform, Explosion { radius: missile.radius, damage: 100.0 }));
+    commands.spawn((
+      transform,
+      Period::from_secs(1.0).despawn(),
+      ParticleEffect::new(explosion.clone()),
+    ));
     commands.entity(entity).despawn_recursive();
   }
 }

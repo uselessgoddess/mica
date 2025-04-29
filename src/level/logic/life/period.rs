@@ -8,15 +8,24 @@ pub fn plugin(app: &mut App) {
 }
 
 #[derive(Component, Reflect, Deref, DerefMut)]
-pub struct Period(Timer);
+pub struct Period {
+  #[deref]
+  timer: Timer,
+  despawn: bool,
+}
 
 impl Period {
   pub fn new(duration: Duration) -> Self {
-    Self(Timer::new(duration, TimerMode::Once))
+    Self { timer: Timer::new(duration, TimerMode::Once), despawn: false }
   }
 
   pub fn from_secs(secs: f32) -> Self {
     Self::new(Duration::from_secs_f32(secs))
+  }
+
+  pub fn despawn(mut self) -> Self {
+    self.despawn = true;
+    self
   }
 }
 
@@ -27,7 +36,11 @@ fn period(
 ) {
   for (entity, mut period) in query.iter_mut() {
     if period.tick(time.delta()).finished() {
-      commands.entity(entity).trigger(Death);
+      if period.despawn {
+        commands.entity(entity).despawn_recursive();
+      } else {
+        commands.entity(entity).trigger(Death);
+      }
     }
   }
 }

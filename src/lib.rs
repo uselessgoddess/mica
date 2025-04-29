@@ -38,6 +38,7 @@ pub mod prelude {
     bevy::prelude::*,
     debug::{AppExt, D, in_debug},
     ecs_tilemap::prelude::*,
+    hanabi::prelude::*,
     num_traits as num,
     ordered_float::OrderedFloat,
     pancam::*,

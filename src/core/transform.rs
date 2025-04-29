@@ -59,6 +59,10 @@ impl Transform2D {
     Self { translation, ..Self::IDENTITY }
   }
 
+  pub const fn from_xy(x: f32, y: f32) -> Self {
+    Self::from_translation(Vec2::new(x, y))
+  }
+
   #[must_use]
   pub const fn with_scale(mut self, scale: Vec2) -> Self {
     self.scale = scale;
