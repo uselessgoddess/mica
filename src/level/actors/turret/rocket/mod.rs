@@ -65,7 +65,7 @@ fn attack(
         (
           Missile { target: enemy.translation, radius: tilemap::TILE },
           Thrust { fuel: 2.0, ..default() },
-          Fuse { sens: tilemap::TILE * 0.5 },
+          Fuse { sens: tilemap::TILE * 0.5, time: 0.5 },
         ),
       ));
     }

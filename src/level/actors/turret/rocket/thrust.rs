@@ -1,7 +1,7 @@
 use {
   super::MissileMetadata,
   crate::{
-    level::{Follow, Period},
+    level::{Follow, Lifetime},
     prelude::*,
   },
 };
@@ -43,7 +43,7 @@ fn spawn(
     commands.spawn((
       Name::new("Contrail"),
       (transform, Follow(target), ThrustEffect(parent)),
-      Period::from_secs(thrust.fuel + 10.0).despawn(),
+      Lifetime::from_secs(thrust.fuel + 10.0).despawn(),
       ParticleEffect::new(contrail.clone()),
     ));
   }

@@ -1,30 +1,35 @@
 use {
   super::{Explosion, effects, thrust::Thrust},
   crate::{
-    level::{Death, Period, Projectile},
+    level::{Death, Lifetime, Projectile},
     prelude::{core::Sensor, *},
   },
 };
 
 pub fn plugin(app: &mut App) {
-  app
-    .register_type::<Missile>()
-    .register_type::<MissileMetadata>()
-    .add_systems(
-      Update,
-      (spawn, thrust, guide, fuse, gizmos.run_if(in_debug(D::L2))),
-    )
+  register(app)
+    .add_systems(Update, (spawn, thrust, guide, fuse))
+    .add_systems(Update, gizmos.run_if(in_debug(D::L2)))
     .add_observer(on_affect)
     .add_observer(on_death);
 }
 
-#[derive(Component)]
+fn register(app: &mut App) -> &mut App {
+  app
+    .register_type::<Fuse>()
+    .register_type::<Flaps>()
+    .register_type::<MissileMetadata>()
+}
+
+#[derive(Component, Reflect)]
 pub struct Flaps(f32);
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
 pub struct Fuse {
   /// Radio trigger radius
   pub sens: f32,
+  /// Time elapsed to fuse after ran out of fuel
+  pub time: f32,
 }
 
 #[derive(Component, Reflect)]
@@ -79,11 +84,11 @@ pub(crate) fn spawn(
 }
 
 fn fuse(
-  mut query: Query<(Entity, &Fuse, &Missile, &Transform2D)>,
+  query: Query<(Entity, &Fuse, &Thrust, &Missile, &Transform2D)>,
   mut commands: Commands,
 ) {
-  for (entity, fuse, missile, Transform2D { translation, .. }) in
-    query.iter_mut()
+  for (entity, mut fuse, thrust, missile, Transform2D { translation, .. }) in
+    query.iter()
   {
     if translation.distance(missile.target) < fuse.sens {
       commands.entity(entity).trigger(Death);
@@ -92,15 +97,27 @@ fn fuse(
 }
 
 fn thrust(
-  mut query: Query<(&Transform2D, &mut Thrust, &mut ExternalForce)>,
+  mut query: Query<(
+    Entity,
+    &Transform2D,
+    &Fuse,
+    &mut Thrust,
+    &mut ExternalForce,
+  )>,
+  mut commands: Commands,
   time: Res<Time>,
 ) {
-  for (transform, mut thrust, mut force) in &mut query {
-    if thrust.fuel <= 0.0 {
-      continue;
+  let delta = time.delta_secs();
+  for (entity, transform, fuse, mut thrust, mut force) in query.iter_mut() {
+    // Fuel reach zero level
+    if thrust.fuel >= 0.0 && thrust.fuel - delta < 0.0 {
+      commands.entity(entity).insert(Lifetime::from_secs(fuse.time));
     }
-    thrust.fuel -= time.delta_secs();
-
+    if thrust.fuel < 0.0 {
+      continue;
+    } else {
+      thrust.fuel -= time.delta_secs();
+    }
     force.set_force(transform.rotation * Vec2::Y * thrust.thrust);
   }
 }
@@ -156,7 +173,7 @@ fn on_death(
       .spawn((transform, Explosion { radius: missile.radius, damage: 100.0 }));
     commands.spawn((
       transform,
-      Period::from_secs(1.0).despawn(),
+      Lifetime::from_secs(1.0).despawn(),
       ParticleEffect::new(explosion.clone()),
     ));
     commands.entity(entity).despawn_recursive();

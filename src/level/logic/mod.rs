@@ -6,7 +6,7 @@ use crate::prelude::*;
 
 pub use {
   follow::Follow,
-  life::{Damage, Death, Health, Period},
+  life::{Damage, Death, Health, Lifetime},
   projectile::Projectile,
 };
 

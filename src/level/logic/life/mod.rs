@@ -3,7 +3,7 @@ use crate::prelude::*;
 mod health;
 mod period;
 
-pub use {health::Health, period::Period};
+pub use {health::Health, period::Lifetime};
 
 pub fn plugin(app: &mut App) {
   app

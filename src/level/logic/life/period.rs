@@ -4,17 +4,17 @@ use {
 };
 
 pub fn plugin(app: &mut App) {
-  app.register_type::<Period>().add_systems(Update, period);
+  app.register_type::<Lifetime>().add_systems(Update, period);
 }
 
 #[derive(Component, Reflect, Deref, DerefMut)]
-pub struct Period {
+pub struct Lifetime {
   #[deref]
   timer: Timer,
   despawn: bool,
 }
 
-impl Period {
+impl Lifetime {
   pub fn new(duration: Duration) -> Self {
     Self { timer: Timer::new(duration, TimerMode::Once), despawn: false }
   }
@@ -30,7 +30,7 @@ impl Period {
 }
 
 fn period(
-  mut query: Query<(Entity, &mut Period)>,
+  mut query: Query<(Entity, &mut Lifetime)>,
   mut commands: Commands,
   time: Res<Time>,
 ) {

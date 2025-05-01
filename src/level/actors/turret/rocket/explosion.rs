@@ -1,6 +1,6 @@
 use crate::{
   core::Sensor,
-  level::{Damage, Death, Period, Projectile},
+  level::{Damage, Death, Lifetime, Projectile},
   prelude::*,
 };
 
@@ -33,7 +33,7 @@ fn spawn(
       .insert((
         Sensor::new(Damage(damage)),
         Collider::circle(radius),
-        Period::from_secs(0.25),
+        Lifetime::from_secs(0.25),
       ))
       .insert((Mesh2d(mesh), MeshMaterial2d(material)));
   }
