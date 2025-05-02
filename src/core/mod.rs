@@ -40,4 +40,5 @@ impl Plugin for CorePlugin {
 }
 
 #[derive(Component)]
+#[require(Camera2d)]
 pub struct PrimaryCamera;
