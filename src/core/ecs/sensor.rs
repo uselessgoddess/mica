@@ -16,7 +16,8 @@ pub fn effect<E: Event + Clone>(app: &mut App) {
         && let Ok(sensor) = query.get(entity)
         && sensor.sensor
       {
-        commands.entity(entity).insert(avian2d::prelude::Sensor);
+        // avian2d::Sensor
+        commands.entity(entity).insert(Sensor);
       }
     },
   );

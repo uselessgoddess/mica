@@ -22,9 +22,6 @@ use {
   egui_dock::{DockArea, DockState, NodeIndex, Style},
 };
 
-#[derive(Clone, Copy)]
-struct GizmoMode;
-
 pub fn plugin(app: &mut App) {
   app
     .add_plugins(DefaultInspectorConfigPlugin)
@@ -104,7 +101,6 @@ struct UiState {
   viewport_rect: egui::Rect,
   selected_entities: SelectedEntities,
   selection: InspectorSelection,
-  gizmo_mode: GizmoMode,
 }
 
 impl UiState {
@@ -115,7 +111,7 @@ impl UiState {
       DockWindow::Settings,
       DockWindow::Inspector,
     ]);
-    let [game, _hierarchy] =
+    let [_game, _hierarchy] =
       tree.split_left(game, 0.2, vec![DockWindow::Hierarchy]);
     // let [_game, _bottom] = tree
     //   .split_below(game, 0.8, vec![DockWindow::Resources, DockWindow::Assets]);
@@ -125,7 +121,6 @@ impl UiState {
       selected_entities: SelectedEntities::default(),
       selection: InspectorSelection::Entities,
       viewport_rect: egui::Rect::NOTHING,
-      gizmo_mode: GizmoMode,
     }
   }
 
@@ -135,7 +130,6 @@ impl UiState {
       viewport_rect: &mut self.viewport_rect,
       selected_entities: &mut self.selected_entities,
       selection: &mut self.selection,
-      gizmo_mode: self.gizmo_mode,
     };
     DockArea::new(&mut self.state)
       .style(Style::from_egui(ctx.style().as_ref()))
@@ -158,7 +152,6 @@ struct TabViewer<'a> {
   selected_entities: &'a mut SelectedEntities,
   selection: &'a mut InspectorSelection,
   viewport_rect: &'a mut egui::Rect,
-  gizmo_mode: GizmoMode,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -187,9 +180,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         // TODO: move out into another module
         ui.heading("Developer Settings");
 
-        if let Some(mut debug) =
-          self.world.get_resource_mut::<D>().as_deref_mut()
-        {
+        if let Some(debug) = self.world.get_resource_mut::<D>().as_deref_mut() {
           egui::ComboBox::from_label("Select One!")
             .selected_text(format!("{debug:?}"))
             .show_ui(ui, |ui| {

@@ -41,3 +41,21 @@ panic = 'abort'
 strip = true
 codegen-units = 1
 lto = "fat"
+
+[lints.clippy]
+doc_markdown = "warn"
+manual_let_else = "warn"
+match_same_arms = "warn"
+type_complexity = "allow"
+unwrap_or_default = "warn"
+needless_lifetimes = "allow"
+too_many_arguments = "allow"
+undocumented_unsafe_blocks = "warn"
+nonstandard_macro_braces = "warn"
+redundant_closure_for_method_calls = "warn"
+print_stdout = "warn"
+print_stderr = "warn"
+
+[lints.rust]
+unsafe_op_in_unsafe_fn = "warn"
+unused_qualifications = "warn"

@@ -84,12 +84,10 @@ pub(crate) fn spawn(
 }
 
 fn fuse(
-  query: Query<(Entity, &Fuse, &Thrust, &Missile, &Transform2D)>,
+  query: Query<(Entity, &Fuse, &Missile, &Transform2D)>,
   mut commands: Commands,
 ) {
-  for (entity, mut fuse, thrust, missile, Transform2D { translation, .. }) in
-    query.iter()
-  {
+  for (entity, fuse, missile, Transform2D { translation, .. }) in query.iter() {
     if translation.distance(missile.target) < fuse.sens {
       commands.entity(entity).trigger(Death);
     }

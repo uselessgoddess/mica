@@ -1,5 +1,8 @@
 #![feature(iter_map_windows, let_chains)]
-#![allow(irrefutable_let_patterns)]
+#![allow(
+  irrefutable_let_patterns,
+  reason = "Because that is favorite my secret trick"
+)]
 
 pub mod core;
 pub mod debug;

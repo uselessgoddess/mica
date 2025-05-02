@@ -11,8 +11,6 @@ fn main() {
     .run();
 }
 
-use bevy::core_pipeline::bloom::Bloom;
-
 fn setup(mut commands: Commands) {
   commands.spawn(PrimaryCamera);
 

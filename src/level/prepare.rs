@@ -38,6 +38,6 @@ fn gizmos(occupied: Query<&Transform2D, With<Occupied>>, mut gizmos: Gizmos) {
       transform.translation,
       tilemap::TILE / 2.0,
       Color::srgb(1.0, 0.0, 0.0),
-    )
+    );
   }
 }
