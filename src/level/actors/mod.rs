@@ -1,5 +1,6 @@
 use crate::prelude::*;
 
+mod camera;
 mod core;
 pub mod enemy;
 pub mod facility;
@@ -19,6 +20,7 @@ pub fn plugin(app: &mut App) {
     .configure_sets(Update, SpawnSet.run_if(in_state(GameState::Playing)))
     .add_plugins((
       core::plugin,
+      camera::plugin,
       enemy::plugin,
       turret::plugin,
       facility::plugin,

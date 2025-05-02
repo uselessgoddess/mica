@@ -14,15 +14,7 @@ fn main() {
 use bevy::core_pipeline::bloom::Bloom;
 
 fn setup(mut commands: Commands) {
-  commands.spawn((
-    Camera2d,
-    (Camera { hdr: true, ..default() }, Bloom::OLD_SCHOOL),
-    PanCam {
-      grab_buttons: vec![MouseButton::Left, MouseButton::Middle],
-      speed: 500.0,
-      ..default()
-    },
-  ));
+  commands.spawn(PrimaryCamera);
 
   let center = tilemap::center();
   commands.spawn((level::Core, center));
