@@ -1,3 +1,6 @@
 [target.x86_64-pc-windows-msvc]
-linker = "rust-lld.exe"
-rustflags = ["-Zshare-generics=off", "-Zthreads=0"]
+rustflags = [
+    "-Clink-args=/OPT:REF,ICF",
+    "-Zshare-generics=off",
+    "-Zthreads=0",
+]

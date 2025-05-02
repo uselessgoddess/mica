@@ -1,7 +1,8 @@
+mod editor;
+
 use {
   crate::prelude::*,
   bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-  inspector_egui::quick,
 };
 
 pub fn plugin(app: &mut App) {
@@ -9,7 +10,6 @@ pub fn plugin(app: &mut App) {
     app.add_plugins((
       FrameTimeDiagnosticsPlugin,
       LogDiagnosticsPlugin::filtered(vec![]),
-      quick::WorldInspectorPlugin::new(),
     ));
 
     if app.is_debug(D::L1) {
@@ -18,5 +18,8 @@ pub fn plugin(app: &mut App) {
         GizmoConfig::default(),
       );
     }
+
+    #[cfg(feature = "debug")]
+    app.add_plugins(editor::plugin);
   }
 }

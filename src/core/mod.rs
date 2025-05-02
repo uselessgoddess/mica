@@ -38,3 +38,6 @@ impl Plugin for CorePlugin {
     }
   }
 }
+
+#[derive(Component)]
+pub struct PrimaryCamera;
