@@ -6,7 +6,7 @@ mod thrust;
 use crate::prelude::*;
 
 use crate::level::{
-  Enemy,
+  ChildOf, Enemy,
   turret::{MonitorTargets, Target},
 };
 
@@ -49,23 +49,23 @@ fn spawn(
 }
 
 fn attack(
-  mut turrets: Query<(&Transform2D, &MonitorTargets, &mut Rocket)>,
-  enemies: Query<&Transform2D, With<Enemy>>,
+  mut turrets: Query<(Entity, &Transform2D, &MonitorTargets, &mut Rocket)>,
   mut commands: Commands,
   time: Res<Time>,
 ) {
-  for (&transform, monitor, mut rocket) in turrets.iter_mut() {
-    if let Some(Target { entity: Some(target), .. }) = monitor.first().copied()
-      && let Ok(enemy) = enemies.get(target).copied()
+  for (entity, &transform, monitor, mut rocket) in turrets.iter_mut() {
+    if let Some(Target { target, .. }) = monitor.first().copied()
       && rocket.cooldown.tick(time.delta()).just_finished()
     {
       commands.spawn((
         Name::new("Missile"),
         transform.add_layer(1.0),
         (
-          Missile { target: enemy.translation, radius: tilemap::TILE },
+          Missile { target, radius: tilemap::TILE },
           Thrust { fuel: 2.0, ..default() },
-          Fuse { sens: tilemap::TILE * 0.5, time: 0.5 },
+          Fuse { sens: tilemap::TILE * 0.5, time: 1.0 },
+          // to receive designation from parent
+          ChildOf(entity),
         ),
       ));
     }

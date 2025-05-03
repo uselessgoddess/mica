@@ -1,14 +1,14 @@
 use {
-  super::{Explosion, effects, thrust::Thrust},
+  super::{Explosion, MonitorTargets, effects, thrust::Thrust},
   crate::{
-    level::{Death, Lifetime, Projectile},
+    level::{ChildOf, Death, Enemy, Lifetime, Projectile, turret::Target},
     prelude::{core::Sensor, *},
   },
 };
 
 pub fn plugin(app: &mut App) {
   register(app)
-    .add_systems(Update, (spawn, thrust, guide, fuse))
+    .add_systems(Update, (spawn, thrust, guide, fuse, designate))
     .add_systems(Update, gizmos.run_if(in_debug(D::L2)))
     .add_observer(on_affect)
     .add_observer(on_death);
@@ -131,6 +131,19 @@ fn guide(
     let angle = direction.angle_to(to_target);
 
     torque.set_torque(angle.signum() * flaps.0);
+  }
+}
+
+fn designate(
+  mut query: Query<(&mut Missile, &ChildOf)>,
+  turrets: Query<&MonitorTargets>,
+) {
+  for (mut missile, &ChildOf(parent)) in query.iter_mut() {
+    if let Ok(monitor) = turrets.get(parent)
+      && let Some(Target { target, .. }) = monitor.first().copied()
+    {
+      missile.target = target;
+    }
   }
 }
 
