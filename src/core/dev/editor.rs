@@ -177,19 +177,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         select_asset(ui, &type_registry, self.world, self.selection)
       }
       DockWindow::Settings => {
-        // TODO: move out into another module
-        ui.heading("Developer Settings");
-
-        if let Some(debug) = self.world.get_resource_mut::<D>().as_deref_mut() {
-          egui::ComboBox::from_label("Select One!")
-            .selected_text(format!("{debug:?}"))
-            .show_ui(ui, |ui| {
-              ui.selectable_value(debug, D::None, "None");
-              ui.selectable_value(debug, D::L1, "L1");
-              ui.selectable_value(debug, D::L2, "L2");
-              ui.selectable_value(debug, D::L3, "L3");
-            });
-        }
+        super::settings::ui(ui, self.world);
       }
       DockWindow::Inspector => match *self.selection {
         InspectorSelection::Entities => match self.selected_entities.as_slice()

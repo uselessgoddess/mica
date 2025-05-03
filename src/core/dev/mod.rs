@@ -1,4 +1,5 @@
 mod editor;
+mod settings;
 
 use {
   crate::prelude::*,
