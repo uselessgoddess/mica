@@ -1,7 +1,7 @@
 use {
   super::{Explosion, MonitorTargets, effects, thrust::Thrust},
   crate::{
-    level::{ChildOf, Death, Enemy, Lifetime, Projectile, turret::Target},
+    level::{ChildOf, Death, Lifetime, Projectile, turret::Target},
     prelude::{core::Sensor, *},
   },
 };

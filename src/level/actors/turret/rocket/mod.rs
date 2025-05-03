@@ -6,7 +6,7 @@ mod thrust;
 use crate::prelude::*;
 
 use crate::level::{
-  ChildOf, Enemy,
+  ChildOf,
   turret::{MonitorTargets, Target},
 };
 
