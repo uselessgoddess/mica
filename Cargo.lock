@@ -1026,6 +1026,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_lunex"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ea0bd471f202a075bcbed73051ba2e19839c5f93b8a24d7df271bf175fecb27"
+dependencies = [
+ "bevy",
+ "colored",
+ "radsort",
+]
+
+[[package]]
 name = "bevy_macro_utils"
 version = "0.15.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1398,6 +1409,15 @@ name = "bevy_transform_interpolation"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fcad6974fb74cab07425c4f3d3af78876966b4525c3aec5c0d56ae8511a946a"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
+name = "bevy_tweening"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b95b4abfbb08a8b16c1feffffb73cb4c01b693810ab4982669e019b52fafcca0"
 dependencies = [
  "bevy",
 ]
@@ -1795,6 +1815,15 @@ name = "color_quant"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d7b894f5411737b7867f4827955924d7c254fc9f4d91a6aad6b097804b1018b"
+
+[[package]]
+name = "colored"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fde0e0ec90c9dfb3b4b1a0891a7dcd0e2bffde2f7efed5fe7c9bb00e5bfb915e"
+dependencies = [
+ "windows-sys 0.59.0",
+]
 
 [[package]]
 name = "combine"
@@ -3233,7 +3262,9 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy_ecs_tilemap",
  "bevy_hanabi",
+ "bevy_lunex",
  "bevy_pancam",
+ "bevy_tweening",
  "egui_dock",
  "log",
  "noise",

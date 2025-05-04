@@ -17,7 +17,7 @@ pub struct SpawnSet;
 
 pub fn plugin(app: &mut App) {
   app
-    .configure_sets(Update, SpawnSet.run_if(in_state(GameState::Playing)))
+    .configure_sets(Update, SpawnSet.run_if(in_state(Game::Gameplay)))
     .add_plugins((
       core::plugin,
       camera::plugin,
