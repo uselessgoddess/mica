@@ -28,9 +28,9 @@ fn setup(mut commands: Commands) {
 fn setup_tilemap(
   mut commands: Commands,
   asset_server: Res<AssetServer>,
-  mut next: ResMut<NextState<GameState>>,
+  mut next: ResMut<NextState<Game>>,
 ) {
-  next.set(GameState::Playing);
+  next.set(Game::Gameplay);
 
   let texture: Handle<Image> = asset_server.load("tiles/default.png");
 

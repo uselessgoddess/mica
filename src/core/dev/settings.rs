@@ -14,10 +14,20 @@ pub fn ui(ui: &mut egui::Ui, world: &mut World) {
       });
   }
 
-  let mut gizmos = world
-    .get_resource_mut::<GizmoConfigStore>()
-    .expect("`GizmoConfigStore` expected to be created from `bevy`");
-  let (config, _) = gizmos.config_mut::<PhysicsGizmos>();
+  gizmos::<PhysicsGizmos>(ui, world, "Physics gizmos");
+  gizmos::<DefaultGizmoConfigGroup>(ui, world, "System gizmos");
+}
 
-  ui.checkbox(&mut config.enabled, "Physics gizmo");
+fn gizmos<G: GizmoConfigGroup>(
+  ui: &mut egui::Ui,
+  world: &mut World,
+  label: &str,
+) {
+  let mut gizmos =
+    world.get_resource_mut::<GizmoConfigStore>().unwrap_or_else(|| {
+      panic!("`{}` expected to be created from `bevy`", type_name::<G>())
+    });
+  let (config, _) = gizmos.config_mut::<G>();
+
+  ui.checkbox(&mut config.enabled, label);
 }

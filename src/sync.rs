@@ -1,9 +1,13 @@
 use crate::prelude::*;
 
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct SyncSet;
+
 pub fn plugin(app: &mut App) {
-  app
-    .register_type::<Pos>()
-    .add_systems(PreUpdate, (storage, transform, tilepos).chain());
+  app.register_type::<Pos>().add_systems(
+    PreUpdate,
+    (storage, transform, tilepos).chain().in_set(SyncSet),
+  );
 }
 
 #[derive(Component, Deref, DerefMut)]

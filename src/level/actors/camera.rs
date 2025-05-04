@@ -6,14 +6,13 @@ pub fn plugin(app: &mut App) {
 
 fn spawn(query: Query<Entity, Added<PrimaryCamera>>, mut commands: Commands) {
   for entity in query.iter() {
-    commands.entity(entity).insert((
-      Camera { hdr: true, ..default() },
-      Bloom::OLD_SCHOOL,
-      PanCam {
+    commands
+      .entity(entity)
+      .insert((UiSourceCamera::<0>, Transform2D::IDENTITY.with_layer(128.0)))
+      .insert((Camera { hdr: true, ..default() }, Bloom::OLD_SCHOOL, PanCam {
         grab_buttons: vec![MouseButton::Left, MouseButton::Middle],
         speed: 500.0,
         ..default()
-      },
-    ));
+      }));
   }
 }

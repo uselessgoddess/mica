@@ -24,12 +24,13 @@ pub struct CorePlugin;
 impl Plugin for CorePlugin {
   fn build(&self, app: &mut App) {
     app
-      .add_plugins(system::plugin)
-      .add_plugins(tilemap::plugin)
-      .add_plugins(transform::plugin) // todo!: move to `ecs` mod
-      .add_plugins(ecs::plugin)
-      .add_plugins(PhysicsPlugins::default())
-      .add_plugins(HanabiPlugin);
+      .add_plugins((
+        system::plugin,
+        tilemap::plugin,
+        transform::plugin, // todo!: move to `ecs` mod
+        ecs::plugin,
+      ))
+      .add_plugins(PhysicsPlugins::default());
 
     app.insert_resource(Gravity::ZERO);
 

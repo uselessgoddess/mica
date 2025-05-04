@@ -20,6 +20,8 @@ ecs-tilemap = { package = "bevy_ecs_tilemap", version = "0.15" }
 inspector-egui = { package = "bevy-inspector-egui", version = "0.30" }
 pancam = { package = "bevy_pancam", version = "0.17" }
 hanabi = { package = "bevy_hanabi", version = "0.15", default-features = false, features = ["2d"] }
+lunex = { package = "bevy_lunex", version = "0.3", default-features = false }
+tweening = { package = "bevy_tweening", version = "0.12" }
 
 egui_dock = { version = "0.16" }
 
@@ -31,7 +33,7 @@ debug = ["bevy/dynamic_linking"]
 release = ["log/release_max_level_error"]
 
 [profile.dev]
-opt-level = 1
+opt-level = 2
 
 [profile.dev.package."*"]
 opt-level = 3
