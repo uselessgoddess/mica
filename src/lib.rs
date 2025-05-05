@@ -52,6 +52,7 @@ pub mod prelude {
       app
         .add_plugins(CorePlugin)
         .init_state::<Game>()
+        .enable_state_scoped_entities::<Game>()
         .init_state::<Pause>()
         .enable_state_scoped_entities::<Pause>()
         .add_plugins((

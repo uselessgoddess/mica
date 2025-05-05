@@ -2,6 +2,7 @@ pub mod bar;
 mod dev;
 pub mod ecs;
 mod layers;
+mod lens;
 pub mod noise;
 pub mod physics;
 mod system;
@@ -13,6 +14,7 @@ pub use {
   bar::{Bar, BarHeight, Percentage},
   ecs::{Affect, AppExt as _, Sensor, TriggerExt as _},
   layers::layer,
+  lens::{TextLens, decryption_animation, typing_animation},
   transform::Transform2D,
   utils::type_name,
 };
@@ -29,6 +31,7 @@ impl Plugin for CorePlugin {
         tilemap::plugin,
         transform::plugin, // todo!: move to `ecs` mod
         ecs::plugin,
+        lens::plugin,
       ))
       .add_plugins(PhysicsPlugins::default());
 
