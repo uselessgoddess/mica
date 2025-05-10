@@ -1,5 +1,5 @@
-mod laser;
-mod rocket;
+pub mod laser;
+pub mod rocket;
 
 use {
   crate::{level::Enemy, prelude::*},

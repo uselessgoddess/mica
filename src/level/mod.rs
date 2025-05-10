@@ -2,10 +2,17 @@ use crate::prelude::*;
 
 mod actors;
 mod follow;
+mod interact;
 mod logic;
 mod prepare;
 
-pub use {actors::*, follow::Follow, logic::*, prepare::Occupied};
+pub use {
+  actors::*,
+  follow::{Follow, FollowMouse},
+  interact::*,
+  logic::*,
+  prepare::Occupied,
+};
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 #[non_exhaustive]
@@ -24,6 +31,7 @@ pub fn plugin(app: &mut App) {
       logic::plugin,
       prepare::plugin,
       follow::plugin,
+      interact::plugin,
     ))
     .add_systems(Update, settings);
 }

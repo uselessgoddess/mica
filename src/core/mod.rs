@@ -12,7 +12,9 @@ mod utils;
 
 pub use {
   bar::{Bar, BarHeight, Percentage},
-  ecs::{Affect, AppExt as _, Sensor, TriggerExt as _},
+  ecs::{
+    Affect, AppExt as _, Sensor, TriggerExt as _, spawn::CommandsExt as _,
+  },
   layers::layer,
   lens::{TextLens, decryption_animation, typing_animation},
   transform::Transform2D,
