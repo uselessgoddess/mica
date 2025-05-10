@@ -1,8 +1,12 @@
 pub mod sensor;
+pub(crate) mod spawn;
 
 use crate::prelude::*;
 
-pub use sensor::{Affect, AppExt, Sensor, effect};
+pub use {
+  sensor::{Affect, AppExt, Sensor, effect},
+  spawn::Build,
+};
 
 pub fn plugin(app: &mut App) {
   app.add_plugins(sensor::plugin);

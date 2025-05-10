@@ -83,8 +83,9 @@ fn set_camera_viewport(
   // Typically this shouldn't happen- but during init and resizing etc. edge cases might occur.
   // Simply do nothing in those cases.
   if rect.x <= window_size.x && rect.y <= window_size.y {
-    cam.viewport =
-      Some(Viewport { physical_position, physical_size, depth: 0.0..1.0 });
+    // FIXME: fix cursor position with custom viewport
+    // cam.viewport =
+    //   Some(Viewport { physical_position, physical_size, depth: 0.0..1.0 });
   }
 }
 

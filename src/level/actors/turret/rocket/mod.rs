@@ -23,6 +23,16 @@ pub fn plugin(app: &mut App) {
     .add_systems(Update, (spawn, attack));
 }
 
+pub struct Build;
+
+impl ecs::Build for Build {
+  type Input = TilePos;
+
+  fn apply(&self, input: Self::Input, world: &mut World, entity: Entity) {
+    world.entity_mut(entity).insert(input).insert(Rocket::default());
+  }
+}
+
 #[derive(Component, Reflect)]
 #[require(super::Turret)]
 pub struct Rocket {
