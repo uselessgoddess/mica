@@ -1,23 +1,42 @@
-use mica::prelude::*;
+use mica::{
+  level::{facility, turret},
+  prelude::*,
+};
 
 fn main() {
   App::new()
+    .insert_resource(D::L3)
     .add_plugins(GamePlugin)
-    .add_plugins(sync::plugin)
-    .add_plugins(level::plugin)
-    .add_systems(Startup, setup)
-    .add_systems(Update, camera::movement)
+    .add_systems(Startup, (setup, setup_tilemap))
     .run();
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-  commands.spawn(Camera2d);
+fn setup(mut commands: Commands) {
+  commands.spawn(PrimaryCamera);
+
+  let center = tilemap::center();
+  commands.spawn((level::Core, center));
+
+  commands.spawn((turret::Rocket::default(), TilePos { x: 16, y: 15 }));
+  commands.spawn((facility::Designator, TilePos { x: 17, y: 15 }));
+  commands.spawn((turret::Rocket::default(), TilePos { x: 18, y: 15 }));
+
+  commands.spawn((turret::Laser, TilePos { y: center.y + 1, ..center }));
+  commands.spawn((turret::Laser, TilePos { y: center.y - 1, ..center }));
+}
+
+fn setup_tilemap(
+  mut commands: Commands,
+  asset_server: Res<AssetServer>,
+  mut next: ResMut<NextState<GameState>>,
+) {
+  next.set(GameState::Playing);
 
   let texture: Handle<Image> = asset_server.load("tiles/default.png");
 
   let tilemap = commands.spawn(Name::new("Tilemap")).id();
 
-  let size = core::tilemap::SIZE;
+  let size = tilemap::SIZE;
   let mut storage = TileStorage::empty(size);
 
   for x in 0..size.x {
@@ -29,9 +48,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
           tilemap_id: TilemapId(tilemap),
           ..Default::default()
         })
+        .insert(TileColor::from(Color::srgb(0.75, 0.75, 0.75)))
         .id();
 
-      if rand::random_ratio(1, 5) {
+      if rand::random_ratio(1, 12) {
         commands
           .entity(tile_entity)
           .insert(level::Wall)
@@ -43,8 +63,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
   }
 
-  let (map_type, tile_size) =
-    (TilemapType::Square, TilemapTileSize { x: 32.0, y: 32.0 });
+  let (map_type, tile_size) = (TilemapType::Square, TilemapTileSize {
+    x: tilemap::TILE,
+    y: tilemap::TILE,
+  });
   let grid_size = tile_size.into();
 
   commands.entity(tilemap).insert(TilemapBundle {

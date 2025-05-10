@@ -1,12 +1,15 @@
-#![feature(iter_map_windows)]
+#![feature(iter_map_windows, let_chains)]
+#![allow(
+  irrefutable_let_patterns,
+  reason = "Because that is favorite my secret trick"
+)]
 
-pub mod camera;
 pub mod core;
-mod debug;
+pub mod debug;
 pub mod level;
 pub mod sync;
 
-use {bevy::prelude::*, core::CorePlugin};
+use {bevy::prelude::*, core::CorePlugin, pancam::PanCamPlugin};
 
 #[derive(States, Default, Clone, Eq, PartialEq, Debug, Hash)]
 pub enum GameState {
@@ -19,9 +22,12 @@ pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
   fn build(&self, app: &mut App) {
-    app.add_plugins(CorePlugin)
-        // .init_state::<GameState>()
-    ;
+    app
+      .add_plugins(CorePlugin)
+      .init_state::<GameState>()
+      .add_plugins(PanCamPlugin)
+      .add_plugins(sync::plugin)
+      .add_plugins(level::plugin);
   }
 }
 
@@ -29,5 +35,15 @@ impl Plugin for GamePlugin {
 pub mod prelude {
   pub use super::*;
 
-  pub use {bevy::prelude::*, ecs_tilemap::prelude::*};
+  pub use {
+    super::core::*,
+    avian2d::prelude::*,
+    bevy::prelude::*,
+    debug::{AppExt, D, in_debug},
+    ecs_tilemap::prelude::*,
+    hanabi::prelude::*,
+    num_traits as num,
+    ordered_float::OrderedFloat,
+    pancam::*,
+  };
 }
