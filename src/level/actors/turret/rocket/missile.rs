@@ -46,7 +46,7 @@ impl Default for Flaps {
   }
 }
 
-#[derive(Component, Reflect)]
+#[derive(Component, Reflect, Clone)]
 pub struct MissileMetadata {
   pub explosion: Handle<EffectAsset>,
   pub contrail: Handle<EffectAsset>,
@@ -57,7 +57,6 @@ pub(crate) fn spawn(
   mut commands: Commands,
   mut meshes: ResMut<Assets<Mesh>>,
   mut materials: ResMut<Assets<ColorMaterial>>,
-  mut effects: ResMut<Assets<EffectAsset>>,
 ) {
   let (width, height) = (tilemap::TILE * 0.12, tilemap::TILE * 0.25);
 
@@ -75,11 +74,7 @@ pub(crate) fn spawn(
         Collider::rectangle(width, height),
       ))
       .insert((LinearDamping(0.3), AngularDamping(2.5)))
-      .insert((Mesh2d(mesh), MeshMaterial2d(material)))
-      .insert(MissileMetadata {
-        explosion: effects.add(effects::explosion()),
-        contrail: effects.add(effects::contrail()),
-      });
+      .insert((Mesh2d(mesh), MeshMaterial2d(material)));
   }
 }
 

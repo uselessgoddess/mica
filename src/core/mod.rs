@@ -37,6 +37,7 @@ impl Plugin for CorePlugin {
       ))
       .add_plugins(PhysicsPlugins::default());
 
+    app.insert_resource(SubstepCount(1));
     app.insert_resource(Gravity::ZERO);
 
     if debug::dev() {
