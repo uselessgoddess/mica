@@ -95,6 +95,8 @@ fn update_paths(
   occupied: Query<&Occupied>,
   mut commands: Commands,
 ) {
+  return;
+
   let storage = storage.single();
 
   let offset = |pos, x, y| -> Option<(u32, u32)> {

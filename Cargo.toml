@@ -30,6 +30,7 @@ log = { version = "*", optional = true }
 
 [features]
 debug = ["bevy/dynamic_linking"]
+tracy = ["bevy/trace_tracy", "bevy/trace_tracy_memory", "hanabi/trace"]
 release = ["log/release_max_level_error"]
 
 [profile.dev]
@@ -38,8 +39,9 @@ opt-level = 2
 [profile.dev.package."*"]
 opt-level = 3
 
-[profile.release]
-panic = 'abort'
+[profile.pub]
+inherits = "release"
+panic = "abort"
 strip = true
 codegen-units = 1
 lto = "fat"
