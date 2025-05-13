@@ -5,6 +5,7 @@ mod layers;
 mod lens;
 pub mod noise;
 pub mod physics;
+mod shapes;
 mod system;
 pub mod tilemap;
 mod transform;
@@ -17,6 +18,7 @@ pub use {
   },
   layers::layer,
   lens::{TextLens, decryption_animation, typing_animation},
+  shapes::Shapes,
   transform::Transform2D,
   utils::type_name,
 };
@@ -34,6 +36,7 @@ impl Plugin for CorePlugin {
         transform::plugin, // todo!: move to `ecs` mod
         ecs::plugin,
         lens::plugin,
+        shapes::plugin,
       ))
       .add_plugins(PhysicsPlugins::default());
 

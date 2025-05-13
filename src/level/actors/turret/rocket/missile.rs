@@ -104,7 +104,7 @@ fn thrust(
   for (entity, transform, fuse, mut thrust, mut force) in query.iter_mut() {
     // Fuel reach zero level
     if thrust.fuel >= 0.0 && thrust.fuel - delta < 0.0 {
-      commands.entity(entity).insert(Lifetime::from_secs(fuse.time));
+      commands.entity(entity).try_insert(Lifetime::from_secs(fuse.time));
     }
     if thrust.fuel < 0.0 {
       continue;

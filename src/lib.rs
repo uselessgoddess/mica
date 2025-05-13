@@ -44,6 +44,7 @@ pub mod prelude {
     num_traits as num,
     ordered_float::OrderedFloat,
     pancam::*,
+    prototype_lyon::prelude::*,
     tweening::*,
   };
 
@@ -60,6 +61,7 @@ pub mod prelude {
           HanabiPlugin,
           TweeningPlugin,
           UiLunexPlugins,
+          ShapePlugin,
         ))
         .add_plugins((sync::plugin, level::plugin, ui::plugin));
     }
