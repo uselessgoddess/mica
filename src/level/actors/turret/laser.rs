@@ -7,10 +7,13 @@ use crate::{
 };
 
 pub fn plugin(app: &mut App) {
-  app.register_type::<Laser>().add_systems(Update, (spawn, attack));
+  app
+    .register_type::<Laser>()
+    .add_systems(PreUpdate, clear_laser)
+    .add_systems(Update, (spawn, attack));
 }
 
-#[derive(Component, Reflect)]
+#[derive(Component, Reflect, Default)]
 #[require(super::Turret)]
 pub struct Laser;
 
@@ -23,7 +26,18 @@ fn spawn(
   for entity in query.iter() {
     let mesh = meshes.add(Circle::new(tilemap::TILE * 0.25));
     let material = materials.add(Color::srgb(0.0, 0.75, 0.25));
-    commands.entity(entity).insert((Mesh2d(mesh), MeshMaterial2d(material)));
+    commands
+      .entity(entity)
+      .insert(Name::new("Laser"))
+      .insert((Mesh2d(mesh), MeshMaterial2d(material)));
+  }
+}
+
+fn clear_laser(turrets: Query<&Children, With<Laser>>, mut commands: Commands) {
+  for children in turrets.iter() {
+    for &child in children.iter() {
+      commands.entity(child).despawn_recursive();
+    }
   }
 }
 
@@ -31,7 +45,6 @@ fn attack(
   turrets: Query<(&Transform2D, &MonitorTargets), With<Laser>>,
   enemies: Query<&Transform2D, With<Enemy>>,
   mut commands: Commands,
-  mut gizmos: Gizmos,
   time: Res<Time>,
 ) {
   let damage = Damage(10.0 * time.delta_secs());
@@ -41,11 +54,12 @@ fn attack(
       && let Ok(to) = enemies.get(target)
     {
       commands.entity(target).trigger(damage);
-      gizmos.line_2d(
-        from.translation,
-        to.translation,
-        Color::srgb(0.0, 1.0, 0.0),
-      );
+
+      Shapes(&mut commands)
+        .line(from.translation, to.translation)
+        .color(Color::srgb(0.0, 5.0, 3.0))
+        .width(0.5)
+        .build();
     }
   }
 }
