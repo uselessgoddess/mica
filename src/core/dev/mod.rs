@@ -1,10 +1,13 @@
 mod editor;
+mod select;
 mod settings;
 
 use {
   crate::prelude::*,
   bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
 };
+
+pub(crate) use select::Select;
 
 pub fn plugin(app: &mut App) {
   {
@@ -21,6 +24,6 @@ pub fn plugin(app: &mut App) {
     }
 
     #[cfg(feature = "debug")]
-    app.add_plugins(editor::plugin);
+    app.add_plugins((editor::plugin, select::plugin));
   }
 }

@@ -1,4 +1,8 @@
-use {crate::prelude::*, inspector_egui::egui};
+use {
+  super::Select,
+  crate::prelude::*,
+  inspector_egui::{bevy_inspector, egui},
+};
 
 pub fn ui(ui: &mut egui::Ui, world: &mut World) {
   ui.heading("Developer Settings");
@@ -16,6 +20,12 @@ pub fn ui(ui: &mut egui::Ui, world: &mut World) {
 
   gizmos::<PhysicsGizmos>(ui, world, "Physics gizmos");
   gizmos::<DefaultGizmoConfigGroup>(ui, world, "System gizmos");
+
+  if let Some(select) = world.get_resource::<Select>()
+    && let Select::Some(entity) | Select::Hover(Some(entity)) = *select
+  {
+    bevy_inspector::ui_for_entity(world, entity, ui);
+  }
 }
 
 fn gizmos<G: GizmoConfigGroup>(
