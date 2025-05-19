@@ -3357,6 +3357,7 @@ dependencies = [
 name = "mica"
 version = "0.0.0"
 dependencies = [
+ "async-channel",
  "avian2d",
  "bevy",
  "bevy-inspector-egui",
@@ -3366,6 +3367,7 @@ dependencies = [
  "bevy_pancam",
  "bevy_prototype_lyon",
  "bevy_tweening",
+ "crossbeam-channel",
  "egui_dock",
  "log",
  "noise",

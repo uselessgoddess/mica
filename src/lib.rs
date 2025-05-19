@@ -45,6 +45,7 @@ pub mod prelude {
     ordered_float::OrderedFloat,
     pancam::*,
     prototype_lyon::prelude::*,
+    rand::prelude::*,
     tweening::*,
   };
 
