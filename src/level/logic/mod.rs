@@ -1,4 +1,5 @@
 mod life;
+pub mod pathfinding;
 mod projectile;
 
 use crate::prelude::*;
@@ -9,9 +10,11 @@ pub use {
 };
 
 pub fn plugin(app: &mut App) {
-  app
-    .register_type::<ChildOf>()
-    .add_plugins((life::plugin, projectile::plugin));
+  app.register_type::<ChildOf>().add_plugins((
+    life::plugin,
+    projectile::plugin,
+    pathfinding::plugin,
+  ));
 }
 
 /// Just a joke, rename to `Parent` after bevy 0.16
