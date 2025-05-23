@@ -52,7 +52,7 @@ fn plan(mut query: Query<(Entity, &mut Target)>, mut sink: ResMut<Sink>) {
   query.shuffle(&mut rand::rng());
 
   for (entity, mut target) in query {
-    if sink.len() < PATH_LIMIT{
+    if sink.len() < PATH_LIMIT {
       sink.push_back((entity, target.pos));
       target.epoch += 1;
     } else {

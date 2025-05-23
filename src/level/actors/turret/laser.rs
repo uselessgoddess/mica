@@ -1,7 +1,7 @@
 use crate::{
   level::{
     Damage, Enemy,
-    turret::{MonitorTargets, Target},
+    turret::{Cooldown, Fov, MonitorTargets, Target},
   },
   prelude::*,
 };
@@ -29,7 +29,8 @@ fn spawn(
     commands
       .entity(entity)
       .insert(Name::new("Laser"))
-      .insert((Mesh2d(mesh), MeshMaterial2d(material)));
+      .insert((Mesh2d(mesh), MeshMaterial2d(material)))
+      .insert(Fov::new(15.0));
   }
 }
 
@@ -42,16 +43,17 @@ fn clear_laser(turrets: Query<&Children, With<Laser>>, mut commands: Commands) {
 }
 
 fn attack(
-  turrets: Query<(&Transform2D, &MonitorTargets), With<Laser>>,
+  turrets: Query<(&Transform2D, &MonitorTargets, &Cooldown), With<Laser>>,
   enemies: Query<&Transform2D, With<Enemy>>,
   mut commands: Commands,
   time: Res<Time>,
 ) {
   let damage = Damage(10.0 * time.delta_secs());
 
-  for (from, monitor) in turrets.iter() {
+  for (from, monitor, cooldown) in turrets.iter() {
     if let Some(Target { entity: Some(target), .. }) = monitor.first().copied()
       && let Ok(to) = enemies.get(target)
+      && cooldown.allow()
     {
       commands.entity(target).trigger(damage);
 
