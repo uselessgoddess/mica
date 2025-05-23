@@ -24,6 +24,7 @@ pub struct ShapeBuilder<'a, 'w, 's> {
   path: Path,
   color: Color,
   width: f32,
+  fill: Option<Fill>,
 }
 
 impl<'a, 'w, 's> ShapeBuilder<'a, 'w, 's> {
@@ -37,6 +38,7 @@ impl<'a, 'w, 's> ShapeBuilder<'a, 'w, 's> {
       path: GeometryBuilder::build_as(&shape),
       color: Color::BLACK,
       width: 1.0,
+      fill: None,
     }
   }
 
@@ -50,19 +52,30 @@ impl<'a, 'w, 's> ShapeBuilder<'a, 'w, 's> {
     self
   }
 
+  pub fn fill(mut self, fill: Fill) -> Self {
+    self.fill = Some(fill);
+    self
+  }
+
   pub fn build(self) -> Entity {
-    let Self { commands, path, color, width } = self;
+    let Self { commands, path, color, width, fill } = self;
 
     commands.queue(|world: &mut World| {
       if world.get_resource::<Registered>().is_none() {
         error!("make sure the shapes::plugin is loaded before using `Shapes`");
       }
     });
-    commands
-      .spawn(Shape)
+
+    let mut entity = commands.spawn(Shape);
+    entity
       .insert(ShapeBundle { path, ..default() })
-      .insert(Stroke::new(color, width))
-      .id()
+      .insert(Stroke::new(color, width));
+
+    if let Some(fill) = fill {
+      entity.insert(fill);
+    }
+
+    entity.id()
   }
 }
 
@@ -74,5 +87,19 @@ impl<'a, 'w, 's> Shapes<'a, 'w, 's> {
     end: Vec2,
   ) -> ShapeBuilder<'a, 'w, 's> {
     ShapeBuilder::new(self.0, shapes::Line(start, end))
+  }
+
+  #[must_use]
+  // FIXME: maybe use `polygon` instead of triangle
+  pub fn triangle(
+    &'a mut self,
+    a: Vec2,
+    b: Vec2,
+    c: Vec2,
+  ) -> ShapeBuilder<'a, 'w, 's> {
+    ShapeBuilder::new(self.0, shapes::Polygon {
+      points: vec![a, b, c],
+      closed: true,
+    })
   }
 }

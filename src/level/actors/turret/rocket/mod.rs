@@ -7,7 +7,7 @@ use crate::prelude::*;
 
 use crate::level::{
   ChildOf,
-  turret::{MonitorTargets, Target},
+  turret::{Cooldown, Fov, MonitorTargets, Target},
 };
 
 use {
@@ -61,7 +61,8 @@ fn spawn(
       .insert(MissileMetadata {
         explosion: effects.add(effects::explosion()),
         contrail: effects.add(effects::contrail()),
-      });
+      })
+      .insert(Fov::new(15.0));
   }
 }
 
@@ -71,15 +72,18 @@ fn attack(
     &Transform2D,
     &MonitorTargets,
     &MissileMetadata,
+    &Cooldown,
     &mut Rocket,
   )>,
   mut commands: Commands,
   time: Res<Time>,
 ) {
-  for (entity, &transform, monitor, metadata, mut rocket) in turrets.iter_mut()
+  for (entity, &transform, monitor, metadata, cooldown, mut rocket) in
+    turrets.iter_mut()
   {
     if let Some(Target { target, .. }) = monitor.first().copied()
       && rocket.cooldown.tick(time.delta()).just_finished()
+      && cooldown.allow()
     {
       commands.spawn((
         Name::new("Missile"),

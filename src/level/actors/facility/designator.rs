@@ -1,7 +1,7 @@
 use crate::{
   level::{
     Enemy, Turret,
-    turret::{MonitorTargets, Slave, Target},
+    turret::{MonitorTargets, Slave, Target, TurretSet},
   },
   prelude::*,
 };
@@ -10,7 +10,11 @@ pub fn plugin(app: &mut App) {
   app
     .register_type::<Neighbors>()
     .register_type::<Designator>()
-    .add_systems(Update, (spawn, neighbors, target, designate).chain());
+    .add_systems(Update, spawn)
+    .add_systems(
+      PostUpdate,
+      (neighbors, target, designate).after(TurretSet::Monitor),
+    );
 }
 
 #[derive(Component, Reflect, Default, Deref, DerefMut)]

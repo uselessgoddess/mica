@@ -88,6 +88,10 @@ impl Transform2D {
   pub fn rotate_z(&mut self, angle: f32) {
     self.rotate(Rot2::radians(angle));
   }
+
+  pub fn up(&self) -> Vec2 {
+    self.rotation * Vec2::Y
+  }
 }
 
 impl Default for Transform2D {
