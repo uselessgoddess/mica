@@ -1,14 +1,17 @@
 use {
   super::{Explosion, MonitorTargets, effects, thrust::Thrust},
   crate::{
-    level::{ChildOf, Death, Lifetime, Projectile, turret::Target},
+    level::{ChildOf, Death, Lifetime, Projectile, SpawnSet, turret::Target},
     prelude::{core::Sensor, *},
   },
 };
 
 pub fn plugin(app: &mut App) {
   register(app)
-    .add_systems(Update, (spawn, thrust, guide, fuse, designate))
+    .add_systems(
+      Update,
+      (spawn.in_set(SpawnSet), thrust, guide, fuse, designate),
+    )
     .add_systems(Update, gizmos.run_if(in_debug(D::L2)))
     .add_observer(on_affect)
     .add_observer(on_death);
@@ -52,7 +55,7 @@ pub struct MissileMetadata {
   pub contrail: Handle<EffectAsset>,
 }
 
-pub(crate) fn spawn(
+fn spawn(
   query: Query<Entity, Added<Missile>>,
   mut commands: Commands,
   mut meshes: ResMut<Assets<Mesh>>,
@@ -131,12 +134,10 @@ fn guide(
 
 fn designate(
   mut query: Query<(&mut Missile, &ChildOf)>,
-  turrets: Query<&MonitorTargets>,
+  turrets: Query<&Target>,
 ) {
   for (mut missile, &ChildOf(parent)) in query.iter_mut() {
-    if let Ok(monitor) = turrets.get(parent)
-      && let Some(Target { target, .. }) = monitor.first().copied()
-    {
+    if let Ok(Target { target, .. }) = turrets.get(parent).copied() {
       missile.target = target;
     }
   }

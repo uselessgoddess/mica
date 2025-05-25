@@ -6,7 +6,7 @@ mod thrust;
 use crate::prelude::*;
 
 use crate::level::{
-  ChildOf,
+  ChildOf, SpawnSet,
   turret::{Cooldown, Fov, MonitorTargets, Target},
 };
 
@@ -20,7 +20,7 @@ pub fn plugin(app: &mut App) {
   app
     .register_type::<Rocket>()
     .add_plugins((missile::plugin, explosion::plugin, thrust::plugin))
-    .add_systems(Update, (spawn, attack));
+    .add_systems(Update, (spawn.in_set(SpawnSet), attack));
 }
 
 pub struct Build;
@@ -70,18 +70,18 @@ fn attack(
   mut turrets: Query<(
     Entity,
     &Transform2D,
-    &MonitorTargets,
-    &MissileMetadata,
+    Option<&Target>,
     &Cooldown,
+    &MissileMetadata,
     &mut Rocket,
   )>,
   mut commands: Commands,
   time: Res<Time>,
 ) {
-  for (entity, &transform, monitor, metadata, cooldown, mut rocket) in
+  for (entity, &transform, target, cooldown, metadata, mut rocket) in
     turrets.iter_mut()
   {
-    if let Some(Target { target, .. }) = monitor.first().copied()
+    if let Some(Target { target, .. }) = target.copied()
       && rocket.cooldown.tick(time.delta()).just_finished()
       && cooldown.allow()
     {

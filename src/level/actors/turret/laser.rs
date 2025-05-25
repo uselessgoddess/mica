@@ -1,6 +1,6 @@
 use crate::{
   level::{
-    Damage, Enemy,
+    Damage, Enemy, SpawnSet,
     turret::{Cooldown, Fov, MonitorTargets, Target},
   },
   prelude::*,
@@ -10,7 +10,7 @@ pub fn plugin(app: &mut App) {
   app
     .register_type::<Laser>()
     .add_systems(PreUpdate, clear_laser)
-    .add_systems(Update, (spawn, attack));
+    .add_systems(Update, (spawn.in_set(SpawnSet), attack));
 }
 
 #[derive(Component, Reflect, Default)]
@@ -43,22 +43,20 @@ fn clear_laser(turrets: Query<&Children, With<Laser>>, mut commands: Commands) {
 }
 
 fn attack(
-  turrets: Query<(&Transform2D, &MonitorTargets, &Cooldown), With<Laser>>,
-  enemies: Query<&Transform2D, With<Enemy>>,
+  turrets: Query<(&Transform2D, Option<&Target>, &Cooldown), With<Laser>>,
   mut commands: Commands,
   time: Res<Time>,
 ) {
   let damage = Damage(10.0 * time.delta_secs());
 
-  for (from, monitor, cooldown) in turrets.iter() {
-    if let Some(Target { entity: Some(target), .. }) = monitor.first().copied()
-      && let Ok(to) = enemies.get(target)
+  for (transform, target, cooldown) in turrets.iter() {
+    if let Some(Target { entity: Some(entity), target, .. }) = target.copied()
       && cooldown.allow()
     {
-      commands.entity(target).trigger(damage);
+      commands.trigger_targets(damage, entity);
 
       Shapes(&mut commands)
-        .line(from.translation, to.translation)
+        .line(transform.translation, target)
         .color(Color::srgb(0.0, 5.0, 3.0))
         .width(0.5)
         .build();

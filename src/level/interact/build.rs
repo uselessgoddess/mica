@@ -1,10 +1,10 @@
 use crate::{
-  level::{FollowMouse, turret::rocket},
+  level::{FollowMouse, SpawnSet, turret::rocket},
   prelude::{ecs::Build, *},
 };
 
 pub fn plugin(app: &mut App) {
-  app.add_systems(Update, (input, highlight, spawn));
+  app.add_systems(Update, (input, highlight, spawn.in_set(SpawnSet)));
 }
 
 #[derive(Component, Deref)]

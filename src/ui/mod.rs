@@ -1,9 +1,15 @@
 mod hud;
 
-use {crate::prelude::*, bevy::window::SystemCursorIcon, std::time::Duration};
+use {
+  crate::{level::SpawnSet, prelude::*},
+  bevy::window::SystemCursorIcon,
+  std::time::Duration,
+};
 
 pub fn plugin(app: &mut App) {
-  app.add_plugins(hud::plugin).add_systems(OnEnter(Pause::Pause), spawn);
+  app
+    .add_plugins(hud::plugin)
+    .add_systems(OnEnter(Pause::Pause), spawn.in_set(SpawnSet));
 }
 
 pub const DEPTH: f32 = 128.0;

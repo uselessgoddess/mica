@@ -41,7 +41,7 @@ pub fn plugin(app: &mut App) {
     .add_plugins(rocket::plugin)
     .add_systems(
       PostUpdate,
-      (self_monitor, filter_monitor).chain().in_set(TurretSet::Monitor),
+      (self_monitor, filter_monitor, target).chain().in_set(TurretSet::Monitor),
     )
     .add_systems(Last, slave)
     .add_systems(Update, fov_gizmos.run_if(in_debug(D::L2)));
@@ -66,6 +66,10 @@ impl MonitorTargets {
 
   pub fn filter_by(&mut self, filter: impl FnMut(&Target) -> bool) {
     self.0 = mem::take(&mut self.0).into_iter().filter(filter).collect();
+  }
+
+  pub fn extend_unique(&mut self, other: &Self) {
+    *self = MonitorTargets(&self.0 & &other.0);
   }
 }
 
@@ -98,6 +102,14 @@ fn filter_monitor(
     monitor.filter_by(|&Target { target, .. }| {
       utils::in_fov(transform, target, fov.angle)
     });
+  }
+}
+
+fn target(turrets: Query<(Entity, &MonitorTargets)>, mut commands: Commands) {
+  for (entity, monitor) in turrets.iter() {
+    if let Some(target) = monitor.first().copied() {
+      commands.entity(entity).insert(target);
+    }
   }
 }
 
