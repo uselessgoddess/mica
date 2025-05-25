@@ -1,5 +1,5 @@
 use {
-  crate::prelude::*,
+  crate::{level::SpawnSet, prelude::*},
   bevy::reflect::{GetTypeRegistration, Typed},
 };
 
@@ -11,7 +11,7 @@ pub fn plugin<P: Percentage>(app: &mut App) {
   app
     .register_type::<Bar<P>>()
     .init_resource::<ColorScheme<P>>()
-    .add_systems(Update, spawn::<P>);
+    .add_systems(Update, spawn::<P>.in_set(SpawnSet));
 }
 
 pub trait Percentage: TypePath + Send + Sync + 'static {

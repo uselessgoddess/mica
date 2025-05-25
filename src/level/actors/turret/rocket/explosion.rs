@@ -1,13 +1,13 @@
 use crate::{
   core::Sensor,
-  level::{Damage, Death, Lifetime, Projectile},
+  level::{Damage, Death, Lifetime, Projectile, SpawnSet},
   prelude::*,
 };
 
 pub fn plugin(app: &mut App) {
   app
     .register_type::<Explosion>()
-    .add_systems(Update, (spawn,))
+    .add_systems(Update, spawn.in_set(SpawnSet))
     .add_observer(on_affect)
     .add_observer(on_death);
 }

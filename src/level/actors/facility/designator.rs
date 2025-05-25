@@ -1,6 +1,6 @@
 use crate::{
   level::{
-    Enemy, Turret,
+    Enemy, SpawnSet, Turret,
     turret::{MonitorTargets, Slave, Target, TurretSet},
   },
   prelude::*,
@@ -10,11 +10,8 @@ pub fn plugin(app: &mut App) {
   app
     .register_type::<Neighbors>()
     .register_type::<Designator>()
-    .add_systems(Update, spawn)
-    .add_systems(
-      PostUpdate,
-      (neighbors, target, designate).after(TurretSet::Monitor),
-    );
+    .add_systems(Update, spawn.in_set(SpawnSet))
+    .add_systems(PostUpdate, (neighbors, target).after(TurretSet::Monitor));
 }
 
 #[derive(Component, Reflect, Default, Deref, DerefMut)]
@@ -73,17 +70,22 @@ fn neighbors(
 }
 
 fn target(
-  enemies: Query<(Entity, &Transform2D), With<Enemy>>,
-  designs: Query<(Entity, &Transform2D, &Designator)>,
+  designs: Query<(&Designator, &Neighbors)>,
+  turrets: Query<&MonitorTargets>,
   mut commands: Commands,
 ) {
-  for (entity, &Transform2D { translation: design, .. }, _) in designs.iter() {
-    let mut targets =
-      enemies.iter().map(|(entity, Transform2D { translation: enemy, .. })| {
-        Target::new(entity, design, *enemy)
-      });
+  for (_designator, neighbors) in designs.iter() {
+    let mut monitor = MonitorTargets::default();
 
-    if let Some(target) = targets.next() {
+    for targets in
+      neighbors.iter().copied().filter_map(|entity| turrets.get(entity).ok())
+    {
+      monitor.extend_unique(targets);
+    }
+
+    let Some(target) = monitor.first().copied() else { return };
+
+    for entity in neighbors.iter().copied() {
       commands.entity(entity).insert(target);
     }
   }

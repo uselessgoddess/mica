@@ -1,7 +1,7 @@
-use crate::prelude::*;
+use crate::{level::SpawnSet, prelude::*};
 
 pub fn plugin(app: &mut App) {
-  app.add_systems(Update, spawn);
+  app.add_systems(Update, spawn.in_set(SpawnSet));
 }
 
 fn spawn(

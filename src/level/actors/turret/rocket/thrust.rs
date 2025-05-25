@@ -1,13 +1,15 @@
 use {
   super::MissileMetadata,
   crate::{
-    level::{Follow, Lifetime},
+    level::{Follow, Lifetime, SpawnSet},
     prelude::*,
   },
 };
 
 pub fn plugin(app: &mut App) {
-  app.register_type::<Thrust>().add_systems(Update, (spawn, clear));
+  app
+    .register_type::<Thrust>()
+    .add_systems(Update, (spawn.in_set(SpawnSet), clear));
 }
 
 #[derive(Debug, Component, Reflect, Copy, Clone)]
@@ -33,19 +35,22 @@ fn spawn(
   >,
   mut commands: Commands,
 ) {
-  for (parent, thrust, MissileMetadata { contrail, .. }, &transform) in
+  for (entity, thrust, MissileMetadata { contrail, .. }, &transform) in
     query.iter()
   {
     let mut target = Entity::PLACEHOLDER;
-    commands.entity(parent).with_children(|parent| {
-      target = parent.spawn(Transform2D::from_xy(0.0, -10.0)).id();
-    });
-    commands.spawn((
-      Name::new("Contrail"),
-      (transform, Follow(target), ThrustEffect(parent)),
-      Lifetime::from_secs(thrust.fuel + 10.0).despawn(),
-      ParticleEffect::new(contrail.clone()),
-    ));
+
+    if let Some(mut parent) = commands.get_entity(entity) {
+      parent.with_children(|parent| {
+        target = parent.spawn(Transform2D::from_xy(0.0, -10.0)).id();
+      });
+      commands.spawn((
+        Name::new("Contrail"),
+        (transform, Follow(target), ThrustEffect(entity)),
+        Lifetime::from_secs(thrust.fuel + 10.0).despawn(),
+        ParticleEffect::new(contrail.clone()),
+      ));
+    }
   }
 }
 
