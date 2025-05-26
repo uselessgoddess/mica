@@ -57,6 +57,7 @@ fn spawn(
     let material = materials.add(Color::srgb(0.25, 0.15, 0.25));
     commands
       .entity(entity)
+      .insert(Name::new("Rocket"))
       .insert((Mesh2d(mesh), MeshMaterial2d(material)))
       .insert(MissileMetadata {
         explosion: effects.add(effects::explosion()),
