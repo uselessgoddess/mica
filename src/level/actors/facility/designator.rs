@@ -21,7 +21,7 @@ pub fn plugin(app: &mut App) {
 pub struct Neighbors(Vec<Entity>);
 
 #[derive(Component, Reflect, Default)]
-#[require(Neighbors)]
+#[require(Turret, Neighbors)]
 pub struct Designator;
 
 fn spawn(
@@ -73,19 +73,10 @@ fn neighbors(
 }
 
 fn monitor(
-  designs: Query<(&Designator, &Neighbors)>,
-  turrets: Query<&MonitorTargets>,
+  designs: Query<(&Designator, &Neighbors, &MonitorTargets)>,
   mut commands: Commands,
 ) {
-  for (_designator, neighbors) in designs.iter() {
-    let mut monitor = MonitorTargets::default();
-
-    for targets in
-      neighbors.iter().copied().filter_map(|entity| turrets.get(entity).ok())
-    {
-      monitor.extend_unique(targets);
-    }
-
+  for (_designator, neighbors, monitor) in designs.iter() {
     let batch: Vec<_> =
       neighbors.iter().map(|&entity| (entity, monitor.clone())).collect();
     commands.insert_batch(batch);

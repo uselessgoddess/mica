@@ -10,9 +10,18 @@ use {
 
 pub use {follow::FollowTarget, laser::Laser, rocket::Rocket, target::Target};
 
+#[derive(Reflect, Debug, Default, Copy, Clone)]
+pub enum TargetKind {
+  #[default]
+  Angle,
+  Distance,
+}
+
 #[derive(Component, Reflect, Default)]
 #[require(MonitorTargets, Cooldown)]
-pub struct Turret;
+pub struct Turret {
+  target: TargetKind,
+}
 
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 #[non_exhaustive]
@@ -56,36 +65,35 @@ fn register(app: &mut App) -> &mut App {
 }
 
 #[derive(Component, Reflect, Default, Clone, Deref, DerefMut)]
-pub struct MonitorTargets(pub BTreeSet<Target>);
+pub struct MonitorTargets(pub Vec<Entity>);
 
 impl MonitorTargets {
-  pub fn single(target: Target) -> Self {
-    Self(BTreeSet::from([target]))
-  }
-
-  pub fn filter_by(&mut self, filter: impl FnMut(&Target) -> bool) {
-    self.0 = mem::take(&mut self.0).into_iter().filter(filter).collect();
-  }
-
-  pub fn extend_unique(&mut self, other: &Self) {
-    *self = MonitorTargets(&self.0 & &other.0);
+  pub fn filter_by(&mut self, mut filter: impl FnMut(Entity) -> bool) {
+    self.0 =
+      mem::take(&mut self.0).into_iter().filter(|&e| filter(e)).collect();
   }
 }
 
 /// Monitor targets for turrets if they are not slaves
 fn self_monitor(
   mut turrets: Query<
-    (Entity, &mut MonitorTargets, &Transform2D),
-    (With<Turret>, Without<Slave>),
+    (&mut MonitorTargets, &Turret, &Transform2D),
+    Without<Slave>,
   >,
   enemies: Query<(Entity, &Transform2D), With<Enemy>>,
 ) {
-  turrets.par_iter_mut().for_each(|(_, mut monitor, &transform)| {
-    let targets: BTreeSet<_> = enemies
+  turrets.par_iter_mut().for_each(|(mut monitor, turret, &from)| {
+    let targets: Vec<_> = enemies
       .iter()
-      .map(|(entity, &Transform2D { translation: target, .. })| {
-        Target::new(entity, transform, target)
+      .sort_by_key::<(Entity, &Transform2D), _>(|&(entity, to)| {
+        let target = Target::new(entity, from, to.translation);
+        let key = match turret.target {
+          TargetKind::Angle => target.angle.abs(),
+          TargetKind::Distance => target.len,
+        };
+        OrderedFloat(key)
       })
+      .map(|(entity, _)| entity)
       .collect();
 
     monitor.0 = targets;
@@ -106,11 +114,11 @@ fn target(
 }
 
 fn targets(
-  turrets: Query<(Entity, &MonitorTargets, Option<&Target>)>,
-  world: Query<Entity>,
+  turrets: Query<(Entity, &Transform2D, &MonitorTargets, Option<&Target>)>,
+  world: Query<&Transform2D>,
   mut commands: Commands,
 ) {
-  for (entity, monitor, target) in turrets.iter() {
+  for (entity, &from, monitor, target) in turrets.iter() {
     // skip if target entity exists
     if let Some(Target { entity: Some(entity), .. }) = target.copied()
       && world.get(entity).is_ok()
@@ -120,8 +128,10 @@ fn targets(
 
     commands.entity(entity).remove::<Target>();
 
-    if let Some(target) = monitor.first().copied() {
-      commands.entity(entity).insert(target);
+    if let Some(target) = monitor.first().copied()
+      && let Ok(to) = world.get(target)
+    {
+      commands.entity(entity).insert(Target::new(target, from, to.translation));
     }
   }
 }
