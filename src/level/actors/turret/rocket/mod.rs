@@ -70,7 +70,7 @@ fn attack(
   mut turrets: Query<(
     Entity,
     &Transform2D,
-    Option<&Target>,
+    &Target,
     &Cooldown,
     &MissileMetadata,
     &mut Rocket,
@@ -78,13 +78,16 @@ fn attack(
   mut commands: Commands,
   time: Res<Time>,
 ) {
-  for (entity, &transform, target, cooldown, metadata, mut rocket) in
-    turrets.iter_mut()
+  for (
+    entity,
+    &transform,
+    &Target { target, .. },
+    cooldown,
+    metadata,
+    mut rocket,
+  ) in turrets.iter_mut()
   {
-    if let Some(Target { target, .. }) = target.copied()
-      && rocket.cooldown.tick(time.delta()).just_finished()
-      && cooldown.allow()
-    {
+    if rocket.cooldown.tick(time.delta()).just_finished() && cooldown.allow() {
       commands.spawn((
         Name::new("Missile"),
         metadata.clone(),

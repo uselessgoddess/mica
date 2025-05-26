@@ -122,3 +122,10 @@ impl From<Transform2D> for Transform {
     }
   }
 }
+
+#[test]
+fn up() {
+  let transform = Transform2D { rotation: Rot2::degrees(90.0), ..default() };
+
+  assert!(Vec2::new(1.0, 0.0).angle_to(transform.up()) < f32::EPSILON);
+}
