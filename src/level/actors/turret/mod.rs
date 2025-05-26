@@ -39,7 +39,7 @@ pub enum TurretSet {
 pub fn plugin(app: &mut App) {
   register(app)
     .add_plugins((laser::plugin, rocket::plugin, follow::plugin))
-    .add_systems(Update, target.in_set(TurretSet::Target))
+    .add_systems(Update, (target, targets).chain().in_set(TurretSet::Target))
     .add_systems(PostUpdate, self_monitor.in_set(TurretSet::Monitor))
     .add_systems(Last, slave)
     .add_systems(Update, fov_gizmos.run_if(in_debug(D::L2)));
@@ -88,24 +88,40 @@ fn self_monitor(
       })
       .collect();
 
-      monitor.0 = targets;
-    },
-  );
+    monitor.0 = targets;
+  });
 }
 
 fn target(
+  mut turrets: Query<(&mut Target, &Transform2D)>,
+  targets: Query<&Transform2D>,
+) {
+  for (mut target, &from) in turrets.iter_mut() {
+    if let Some(entity) = target.entity
+      && let Ok(to) = targets.get(entity)
+    {
+      *target = Target::new(entity, from, to.translation);
+    }
+  }
+}
+
+fn targets(
   turrets: Query<(Entity, &MonitorTargets, Option<&Target>)>,
+  world: Query<Entity>,
   mut commands: Commands,
 ) {
   for (entity, monitor, target) in turrets.iter() {
-    if let Some(target) = target.copied() {
-      commands.entity(entity).queue(target.in_place(|mut entity, _| {
-        entity.remove::<Target>();
-      }));
+    // skip if target entity exists
+    if let Some(Target { entity: Some(entity), .. }) = target.copied()
+      && world.get(entity).is_ok()
+    {
+      continue;
     }
 
+    commands.entity(entity).remove::<Target>();
+
     if let Some(target) = monitor.first().copied() {
-      commands.entity(entity).insert_if_new(target);
+      commands.entity(entity).insert(target);
     }
   }
 }

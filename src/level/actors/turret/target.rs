@@ -20,23 +20,6 @@ impl Target {
       len: from.translation.distance(to),
     }
   }
-
-  pub fn in_place(
-    self,
-    f: impl FnOnce(EntityWorldMut, Self) + Send + 'static,
-  ) -> impl EntityCommand {
-    move |entity: Entity, world: &mut World| {
-      // skip if target entity exists
-      if let Some(Target { entity: Some(entity), .. }) =
-        world.entity(entity).get::<Target>().copied()
-        && world.get_entity(entity).is_ok()
-      {
-        return;
-      }
-
-      let _ = f(world.entity_mut(entity), self);
-    }
-  }
 }
 
 impl PartialEq for Target {
