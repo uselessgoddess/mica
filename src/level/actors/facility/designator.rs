@@ -11,7 +11,7 @@ pub fn plugin(app: &mut App) {
     .register_type::<Neighbors>()
     .register_type::<Designator>()
     .add_systems(Update, spawn.in_set(SpawnSet))
-    .add_systems(PostUpdate, (neighbors, target).after(TurretSet::Monitor));
+    .add_systems(PostUpdate, (neighbors, target).chain());
 }
 
 #[derive(Component, Reflect, Default, Deref, DerefMut)]
@@ -86,19 +86,7 @@ fn target(
     let Some(target) = monitor.first().copied() else { return };
 
     for entity in neighbors.iter().copied() {
-      commands.entity(entity).insert(target);
+      commands.entity(entity).insert_if_new(target);
     }
-  }
-}
-
-fn designate(
-  designs: Query<(&Target, &Designator, &Neighbors)>,
-  mut commands: Commands,
-) {
-  for (&target, _, neighbors) in designs.iter() {
-    let monitor = MonitorTargets::single(target);
-    let batch: Vec<_> =
-      neighbors.iter().map(|&entity| (entity, monitor.clone())).collect();
-    commands.insert_batch(batch);
   }
 }

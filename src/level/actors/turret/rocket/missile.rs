@@ -66,18 +66,21 @@ fn spawn(
   for entity in query.iter() {
     let mesh = meshes.add(Rectangle::new(width, height));
     let material = materials.add(Color::srgb(0.35, 0.35, 0.35));
-    commands
-      .entity(entity)
-      .insert((
-        RigidBody::Dynamic,
-        physics::projectile(),
-        Sensor::none(false),
-        ExternalForce::default().with_persistence(false),
-        ExternalTorque::default().with_persistence(false),
-        Collider::rectangle(width, height),
-      ))
-      .insert((LinearDamping(0.3), AngularDamping(2.5)))
-      .insert((Mesh2d(mesh), MeshMaterial2d(material)));
+
+    commands.queue(move |world: &mut World| {
+      let Ok(mut entity) = world.get_entity_mut(entity) else { return };
+      entity
+        .insert((
+          RigidBody::Dynamic,
+          physics::projectile(),
+          Sensor::none(false),
+          ExternalForce::default().with_persistence(false),
+          ExternalTorque::default().with_persistence(false),
+          Collider::rectangle(width, height),
+        ))
+        .insert((LinearDamping(0.3), AngularDamping(2.5)))
+        .insert((Mesh2d(mesh.clone()), MeshMaterial2d(material.clone())));
+    });
   }
 }
 
@@ -114,7 +117,7 @@ fn thrust(
     } else {
       thrust.fuel -= time.delta_secs();
     }
-    force.set_force(transform.rotation * Vec2::Y * thrust.thrust);
+    force.set_force(transform.up() * thrust.thrust);
   }
 }
 
@@ -122,11 +125,9 @@ fn guide(
   mut query: Query<(&Flaps, &Missile, &Transform2D, &mut ExternalTorque)>,
 ) {
   for (flaps, missile, transform, mut torque) in query.iter_mut() {
-    let direction = transform.rotation * Vec2::Y;
-
     let to_target =
       (missile.target - transform.translation).normalize_or_zero();
-    let angle = direction.angle_to(to_target);
+    let angle = transform.up().angle_to(to_target);
 
     torque.set_torque(angle.signum() * flaps.0);
   }

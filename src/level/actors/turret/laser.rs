@@ -1,7 +1,7 @@
 use crate::{
   level::{
     Damage, Enemy, SpawnSet,
-    turret::{Cooldown, Fov, MonitorTargets, Target},
+    turret::{Cooldown, FollowTarget, Fov, MonitorTargets, Target},
   },
   prelude::*,
 };
@@ -30,7 +30,7 @@ fn spawn(
       .entity(entity)
       .insert(Name::new("Laser"))
       .insert((Mesh2d(mesh), MeshMaterial2d(material)))
-      .insert(Fov::new(15.0));
+      .insert((Fov::new(15.0), FollowTarget { speed: 1.0 }));
   }
 }
 
@@ -43,18 +43,26 @@ fn clear_laser(turrets: Query<&Children, With<Laser>>, mut commands: Commands) {
 }
 
 fn attack(
-  turrets: Query<(&Transform2D, Option<&Target>, &Cooldown), With<Laser>>,
+  turrets: Query<(&Transform2D, &Target, &Cooldown, Option<&Fov>), With<Laser>>,
   mut commands: Commands,
   time: Res<Time>,
 ) {
   let damage = Damage(10.0 * time.delta_secs());
 
-  for (transform, target, cooldown) in turrets.iter() {
-    if let Some(Target { entity: Some(entity), target, .. }) = target.copied()
+  for (&transform, &Target { entity, target, .. }, cooldown, fov) in
+    turrets.iter()
+  {
+    if let Some(fov) = fov
+      && !fov.in_fov(transform, target)
+    {
+      continue;
+    }
+
+    if let Some(entity) = entity
       && cooldown.allow()
     {
       commands.trigger_targets(damage, entity);
-
+      
       Shapes(&mut commands)
         .line(transform.translation, target)
         .color(Color::srgb(0.0, 5.0, 3.0))

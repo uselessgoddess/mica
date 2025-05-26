@@ -1,14 +1,14 @@
+mod follow;
 pub mod laser;
 pub mod rocket;
 mod target;
-pub mod utils;
 
 use {
   crate::{level::Enemy, prelude::*},
   std::{collections::BTreeSet, mem, ops::Deref},
 };
 
-pub use {laser::Laser, rocket::Rocket, target::Target};
+pub use {follow::FollowTarget, laser::Laser, rocket::Rocket, target::Target};
 
 #[derive(Component, Reflect, Default)]
 #[require(MonitorTargets, Cooldown)]
@@ -33,16 +33,14 @@ pub enum TurretSet {
   /// }
   /// ```
   Monitor,
+  Target,
 }
 
 pub fn plugin(app: &mut App) {
   register(app)
-    .add_plugins(laser::plugin)
-    .add_plugins(rocket::plugin)
-    .add_systems(
-      PostUpdate,
-      (self_monitor, filter_monitor, target).chain().in_set(TurretSet::Monitor),
-    )
+    .add_plugins((laser::plugin, rocket::plugin, follow::plugin))
+    .add_systems(Update, target.in_set(TurretSet::Target))
+    .add_systems(PostUpdate, self_monitor.in_set(TurretSet::Monitor))
     .add_systems(Last, slave)
     .add_systems(Update, fov_gizmos.run_if(in_debug(D::L2)));
 }
@@ -50,6 +48,7 @@ pub fn plugin(app: &mut App) {
 fn register(app: &mut App) -> &mut App {
   app
     .register_type::<Fov>()
+    .register_type::<Target>()
     .register_type::<Turret>()
     .register_type::<Cooldown>()
     .register_type::<MonitorTargets>();
@@ -81,34 +80,32 @@ fn self_monitor(
   >,
   enemies: Query<(Entity, &Transform2D), With<Enemy>>,
 ) {
-  turrets.par_iter_mut().for_each(
-    |(_, mut monitor, &Transform2D { translation: a, .. })| {
-      let targets: BTreeSet<_> = enemies
-        .iter()
-        .map(|(entity, &Transform2D { translation: b, .. })| {
-          Target::new(entity, a, b)
-        })
-        .collect();
+  turrets.par_iter_mut().for_each(|(_, mut monitor, &transform)| {
+    let targets: BTreeSet<_> = enemies
+      .iter()
+      .map(|(entity, &Transform2D { translation: target, .. })| {
+        Target::new(entity, transform, target)
+      })
+      .collect();
 
       monitor.0 = targets;
     },
   );
 }
 
-fn filter_monitor(
-  mut turrets: Query<(&Transform2D, &Fov, &mut MonitorTargets)>,
+fn target(
+  turrets: Query<(Entity, &MonitorTargets, Option<&Target>)>,
+  mut commands: Commands,
 ) {
-  for (&transform, fov, mut monitor) in turrets.iter_mut() {
-    monitor.filter_by(|&Target { target, .. }| {
-      utils::in_fov(transform, target, fov.angle)
-    });
-  }
-}
+  for (entity, monitor, target) in turrets.iter() {
+    if let Some(target) = target.copied() {
+      commands.entity(entity).queue(target.in_place(|mut entity, _| {
+        entity.remove::<Target>();
+      }));
+    }
 
-fn target(turrets: Query<(Entity, &MonitorTargets)>, mut commands: Commands) {
-  for (entity, monitor) in turrets.iter() {
     if let Some(target) = monitor.first().copied() {
-      commands.entity(entity).insert(target);
+      commands.entity(entity).insert_if_new(target);
     }
   }
 }
@@ -154,6 +151,13 @@ impl Fov {
       Rot2::degrees(-self.angle / 2.0) * ray,
       Rot2::degrees(self.angle / 2.0) * ray,
     )
+  }
+
+  pub fn in_fov(&self, transform: Transform2D, target: Vec2) -> bool {
+    let dir = (target - transform.translation).normalize();
+
+    // must be `/ 2.0` because it's a whole angle of fov
+    (self.angle / 2.0).to_radians().cos() < transform.up().dot(dir)
   }
 }
 
