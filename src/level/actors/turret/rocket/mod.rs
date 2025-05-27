@@ -7,7 +7,7 @@ use crate::prelude::*;
 
 use crate::level::{
   ChildOf, SpawnSet,
-  turret::{Cooldown, Fov, MonitorTargets, Target},
+  turret::{Cooldown, Fov, Target},
 };
 
 use {

@@ -14,18 +14,14 @@ fn follow(
   mut query: Query<(&mut Transform2D, &Target, &FollowTarget)>,
   time: Res<Time>,
 ) {
-  for (transform, &Target { angle, .. }, follow) in query.iter_mut() {
-    let Transform2D { translation: turret, rotation, .. } =
-      transform.into_inner();
-
+  for (mut transform, &Target { angle, .. }, follow) in query.iter_mut() {
     if angle.abs() < f32::EPSILON {
       continue;
     }
-
     let rotate = follow.speed * time.delta_secs();
     let rotate =
       if angle.abs() <= rotate { angle } else { rotate * angle.signum() };
 
-    *rotation *= Rot2::radians(rotate);
+    transform.rotation *= Rot2::radians(rotate);
   }
 }
