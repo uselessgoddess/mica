@@ -5,7 +5,7 @@ mod target;
 
 use {
   crate::{level::Enemy, prelude::*},
-  std::{collections::BTreeSet, mem, ops::Deref},
+  std::mem,
 };
 
 pub use {follow::FollowTarget, laser::Laser, rocket::Rocket, target::Target};

@@ -108,10 +108,11 @@ impl UiState {
   pub fn new() -> Self {
     let mut state = DockState::new(vec![DockWindow::GameView]);
     let tree = state.main_surface_mut();
-    let [game, _inspector] = tree.split_right(NodeIndex::root(), 0.75, vec![
-      DockWindow::Settings,
-      DockWindow::Inspector,
-    ]);
+    let [game, _inspector] = tree.split_right(
+      NodeIndex::root(),
+      0.75,
+      vec![DockWindow::Settings, DockWindow::Inspector],
+    );
     let [_game, _hierarchy] =
       tree.split_left(game, 0.2, vec![DockWindow::Hierarchy]);
     // let [_game, _bottom] = tree
@@ -276,7 +277,7 @@ fn select_asset(
           _ => false,
         };
 
-        if ui.selectable_label(selected, format!("{:?}", handle)).clicked() {
+        if ui.selectable_label(selected, format!("{handle:?}")).clicked() {
           *selection = InspectorSelection::Asset(
             asset_type_id,
             asset_name.to_string(),

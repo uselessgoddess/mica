@@ -1,7 +1,7 @@
 use crate::{
   level::{
-    Damage, Enemy, SpawnSet,
-    turret::{Cooldown, FollowTarget, Fov, MonitorTargets, Target},
+    Damage, SpawnSet,
+    turret::{Cooldown, FollowTarget, Fov, Target},
   },
   prelude::*,
 };
@@ -62,7 +62,7 @@ fn attack(
       && cooldown.allow()
     {
       commands.trigger_targets(damage, entity);
-      
+
       Shapes(&mut commands)
         .line(transform.translation, target)
         .color(Color::srgb(0.0, 5.0, 3.0))

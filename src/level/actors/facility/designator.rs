@@ -1,7 +1,7 @@
 use crate::{
   level::{
-    Enemy, SpawnSet, Turret,
-    turret::{MonitorTargets, Slave, Target, TurretSet},
+    SpawnSet, Turret,
+    turret::{MonitorTargets, Slave, TurretSet},
   },
   prelude::*,
 };

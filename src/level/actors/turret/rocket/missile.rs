@@ -1,5 +1,5 @@
 use {
-  super::{Explosion, MonitorTargets, effects, thrust::Thrust},
+  super::{Explosion, thrust::Thrust},
   crate::{
     level::{ChildOf, Death, Lifetime, Projectile, SpawnSet, turret::Target},
     prelude::{core::Sensor, *},

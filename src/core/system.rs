@@ -21,7 +21,7 @@ pub fn plugin(app: &mut App) {
           ..default()
         })
         .set(LogPlugin {
-          filter: format!("{},bevy_hanabi=error", DEFAULT_FILTER),
+          filter: format!("{DEFAULT_FILTER},bevy_hanabi=error"),
           ..default()
         }),
     )

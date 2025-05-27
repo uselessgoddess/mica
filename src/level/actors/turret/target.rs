@@ -1,7 +1,4 @@
-use {
-  crate::prelude::*,
-  std::{cmp::Ordering, f32::consts::FRAC_2_PI},
-};
+use {crate::prelude::*, std::cmp::Ordering};
 
 #[derive(Event, Reflect, Default, Copy, Clone)]
 pub struct Target {

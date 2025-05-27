@@ -14,7 +14,7 @@ fn follow(
   mut query: Query<(&mut Transform2D, &Target, &FollowTarget)>,
   time: Res<Time>,
 ) {
-  for (transform, &Target { target, angle, .. }, follow) in query.iter_mut() {
+  for (transform, &Target { angle, .. }, follow) in query.iter_mut() {
     let Transform2D { translation: turret, rotation, .. } =
       transform.into_inner();
 
