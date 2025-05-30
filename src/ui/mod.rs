@@ -3,7 +3,6 @@ mod hud;
 use {
   crate::{level::SpawnSet, prelude::*},
   bevy::window::SystemCursorIcon,
-  std::time::Duration,
 };
 
 pub fn plugin(app: &mut App) {

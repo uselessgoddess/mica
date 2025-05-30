@@ -25,13 +25,11 @@ fn spawn(
   mut meshes: ResMut<Assets<Mesh>>,
   mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-  use bevy::color::palettes::tailwind::YELLOW_50;
-
-  let (width, height) = (tilemap::TILE * 0.05, tilemap::TILE * 0.25);
+  let (width, height) = (tilemap::TILE * 0.025, tilemap::TILE * 0.5);
 
   for (entity, &bullet) in query.iter() {
     let mesh = meshes.add(Rectangle::new(width, height));
-    let material = materials.add(Color::from(YELLOW_50 * 2.0));
+    let material = materials.add(Color::from(palette::BLOOD_RED * 5.0));
 
     commands.queue(move |world: &mut World| {
       let Ok(mut entity) = world.get_entity_mut(entity) else { return };

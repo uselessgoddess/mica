@@ -46,7 +46,8 @@ pub mod prelude {
     pancam::*,
     prototype_lyon::prelude::*,
     rand::prelude::*,
-    tweening::*,
+    std::time::Duration,
+    tweening::{lens::*, *},
   };
 
   impl Plugin for GamePlugin {

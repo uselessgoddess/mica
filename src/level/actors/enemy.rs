@@ -8,6 +8,7 @@ pub fn plugin(app: &mut App) {
     .add_systems(Update, (spawn_enemies, promote_paths).chain())
     .add_systems(Update, poison_system)
     .add_systems(Update, gizmos.run_if(in_debug(D::L2)))
+    .add_observer(on_damage)
     .add_observer(on_death);
 }
 
@@ -25,6 +26,42 @@ fn poison_system(
   let damage = Damage(5.0 * time.delta_secs());
   for entity in query.iter() {
     commands.entity(entity).trigger(damage);
+  }
+}
+
+fn on_damage(
+  trigger: Trigger<Damage>,
+  q_material: Query<(
+    &MeshMaterial2d<ColorMaterial>,
+    Option<&AssetAnimator<ColorMaterial>>,
+  )>,
+  materials: Res<Assets<ColorMaterial>>,
+  mut commands: Commands,
+) {
+  let (entity, Damage(damage)) = trigger.read_event();
+
+  if damage >= 1.0
+    && let Ok((MeshMaterial2d(material), animator)) = q_material.get(entity)
+    && let Some(material) = materials.get(material)
+  {
+    let tween = Tween::new(
+      EaseFunction::CubicInOut,
+      Duration::from_secs_f32(0.15),
+      ColorMaterialColorLens {
+        start: material.color,
+        end: Color::srgb(1.0, 1.0, 1.0),
+      },
+    )
+    .with_repeat_count(RepeatCount::Finite(2))
+    .with_repeat_strategy(RepeatStrategy::MirroredRepeat);
+
+    if let Some(animator) = animator
+      && !animator.tweenable().is_total_completed()
+    {
+      return;
+    }
+
+    commands.entity(entity).try_insert(AssetAnimator::new(tween));
   }
 }
 

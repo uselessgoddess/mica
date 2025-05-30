@@ -1,7 +1,4 @@
-use {
-  crate::{level::Death, prelude::*},
-  std::time::Duration,
-};
+use crate::{level::Death, prelude::*};
 
 pub fn plugin(app: &mut App) {
   app.register_type::<Lifetime>().add_systems(Update, period);

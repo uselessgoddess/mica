@@ -4,6 +4,7 @@ pub mod ecs;
 mod layers;
 mod lens;
 pub mod noise;
+pub mod palette;
 pub mod physics;
 mod shapes;
 mod system;
@@ -58,5 +59,21 @@ pub mod timer {
 
   pub fn repeat(secs: f32) -> Timer {
     Timer::from_seconds(secs, TimerMode::Repeating)
+  }
+}
+
+pub trait TweenableExt {
+  fn is_total_completed(&self) -> bool;
+}
+
+impl<T> TweenableExt for &dyn Tweenable<T> {
+  fn is_total_completed(&self) -> bool {
+    if let TotalDuration::Finite(duration) = self.total_duration()
+      && self.elapsed() >= duration
+    {
+      true
+    } else {
+      false
+    }
   }
 }

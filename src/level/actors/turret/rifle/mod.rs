@@ -36,7 +36,7 @@ impl Burst {
 
 impl Default for Burst {
   fn default() -> Self {
-    Self::new(10, timer::repeat(1.0 / 30.0))
+    Self::new(10, timer::repeat(1.0 / 15.0))
   }
 }
 
@@ -44,11 +44,12 @@ impl Default for Burst {
 #[require(super::Turret, Burst)]
 pub struct Rifle {
   pub cooldown: Timer,
+  pub spread: f32,
 }
 
 impl Default for Rifle {
   fn default() -> Self {
-    Self { cooldown: timer::repeat(1.0) }
+    Self { cooldown: timer::repeat(1.0), spread: f32::to_radians(10.0 / 2.0) }
   }
 }
 
@@ -60,7 +61,7 @@ fn spawn(
 ) {
   for entity in query.iter() {
     let mesh = meshes.add(Circle::new(tilemap::TILE * 0.25));
-    let material = materials.add(Color::srgb(0.75, 0.75, 0.75));
+    let material = materials.add(Color::srgb(0.95, 0.95, 0.95));
     commands
       .entity(entity)
       .insert(Name::new("Rifle"))
@@ -100,13 +101,18 @@ fn attack(
       return;
     }
 
-    if burst.remain > 0 && burst.cooldown.tick(delta).just_finished() {
-      commands.spawn((
-        transform,
-        bullet::Bullet { damage: 1.0 },
-        LinearVelocity(transform.up() * tilemap::TILE * 32.0),
-      ));
-      burst.remain -= 1;
+    if burst.remain > 0 {
+      if burst.cooldown.tick(delta).just_finished() {
+        let spread =
+          Rot2::radians(rand::rng().random_range(-rifle.spread..=rifle.spread));
+
+        commands.spawn((
+          transform,
+          bullet::Bullet { damage: 1.0 },
+          LinearVelocity(spread * transform.up() * tilemap::TILE * 32.0),
+        ));
+        burst.remain -= 1;
+      }
     } else if rifle.cooldown.tick(delta).just_finished() {
       burst.reset();
     }
