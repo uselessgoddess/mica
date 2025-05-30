@@ -35,22 +35,23 @@ fn spawn(
   >,
   mut commands: Commands,
 ) {
-  for (entity, thrust, MissileMetadata { contrail, .. }, &transform) in
-    query.iter()
-  {
-    let mut target = Entity::PLACEHOLDER;
+  for (entity, &thrust, metadata, &transform) in query.iter() {
+    let contrail = metadata.contrail.clone();
+    commands.queue(move |world: &mut World| {
+      let Ok(mut parent) = world.get_entity_mut(entity) else { return };
 
-    if let Some(mut parent) = commands.get_entity(entity) {
+      let mut target = Entity::PLACEHOLDER;
       parent.with_children(|parent| {
         target = parent.spawn(Transform2D::from_xy(0.0, -10.0)).id();
       });
-      commands.spawn((
+
+      world.spawn((
         Name::new("Contrail"),
         (transform, Follow(target), ThrustEffect(entity)),
         Lifetime::from_secs(thrust.fuel + 10.0).despawn(),
-        ParticleEffect::new(contrail.clone()),
+        ParticleEffect::new(contrail),
       ));
-    }
+    });
   }
 }
 

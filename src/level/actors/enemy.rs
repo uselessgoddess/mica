@@ -71,6 +71,7 @@ fn spawn_enemies(
         Enemy,
         Bar::<Health>::new(100.0),
         Target::new(tilemap::center()),
+        physics::enemy(),
         Collider::circle(5.0),
       ))
       .insert((Mesh2d(mesh), MeshMaterial2d(material)));

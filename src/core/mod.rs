@@ -52,3 +52,11 @@ impl Plugin for CorePlugin {
 #[derive(Component)]
 #[require(Camera2d)]
 pub struct PrimaryCamera;
+
+pub mod timer {
+  use bevy::time::{Timer, TimerMode};
+
+  pub fn repeat(secs: f32) -> Timer {
+    Timer::from_seconds(secs, TimerMode::Repeating)
+  }
+}

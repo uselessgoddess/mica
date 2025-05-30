@@ -1,5 +1,6 @@
 mod follow;
 pub mod laser;
+pub mod rifle;
 pub mod rocket;
 mod target;
 
@@ -8,7 +9,10 @@ use {
   std::mem,
 };
 
-pub use {follow::FollowTarget, laser::Laser, rocket::Rocket, target::Target};
+pub use {
+  follow::FollowTarget, laser::Laser, rifle::Rifle, rocket::Rocket,
+  target::Target,
+};
 
 #[derive(Reflect, Debug, Default, Copy, Clone)]
 pub enum TargetKind {
@@ -47,7 +51,7 @@ pub enum TurretSet {
 
 pub fn plugin(app: &mut App) {
   register(app)
-    .add_plugins((laser::plugin, rocket::plugin, follow::plugin))
+    .add_plugins((laser::plugin, rocket::plugin, follow::plugin, rifle::plugin))
     .add_systems(Update, (target, targets).chain().in_set(TurretSet::Target))
     .add_systems(PostUpdate, self_monitor.in_set(TurretSet::Monitor))
     .add_systems(Last, slave)
@@ -77,12 +81,12 @@ impl MonitorTargets {
 /// Monitor targets for turrets if they are not slaves
 fn self_monitor(
   mut turrets: Query<
-    (&mut MonitorTargets, &Turret, &Transform2D),
+    (&Transform2D, &Turret, &mut MonitorTargets),
     Without<Slave>,
   >,
   enemies: Query<(Entity, &Transform2D), With<Enemy>>,
 ) {
-  turrets.par_iter_mut().for_each(|(mut monitor, turret, &from)| {
+  turrets.par_iter_mut().for_each(|(&from, turret, mut monitor)| {
     let targets: Vec<_> = enemies
       .iter()
       .sort_by_key::<(Entity, &Transform2D), _>(|&(entity, to)| {

@@ -41,7 +41,7 @@ pub struct Rocket {
 
 impl Default for Rocket {
   fn default() -> Self {
-    Self { cooldown: Timer::from_seconds(2.0, TimerMode::Repeating) }
+    Self { cooldown: timer::repeat(2.0) }
   }
 }
 

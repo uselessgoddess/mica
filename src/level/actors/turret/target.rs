@@ -10,12 +10,12 @@ pub struct Target {
 
 impl Target {
   pub fn new(entity: Entity, from: Transform2D, to: Vec2) -> Self {
-    Self {
-      entity: Some(entity),
-      target: to,
-      angle: from.up().angle_to(to),
-      len: from.translation.distance(to),
-    }
+    let len = from.translation.distance(to);
+    let angle = (to - from.translation)
+      .try_normalize()
+      .map(|dir| from.up().angle_to(dir))
+      .unwrap_or_default();
+    Self { entity: Some(entity), target: to, len, angle }
   }
 }
 

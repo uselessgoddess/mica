@@ -17,6 +17,8 @@ fn setup(mut commands: Commands) {
   let center = tilemap::center();
   commands.spawn((level::Core, center));
 
+  commands.spawn((turret::Rifle::default(), TilePos { x: 20, y: 20 }));
+
   commands.spawn((turret::Rocket::default(), TilePos { x: 16, y: 15 }));
   commands.spawn((facility::Designator, TilePos { x: 17, y: 15 }));
   commands.spawn((turret::Rocket::default(), TilePos { x: 18, y: 15 }));
@@ -63,10 +65,10 @@ fn setup_tilemap(
     }
   }
 
-  let (map_type, tile_size) = (TilemapType::Square, TilemapTileSize {
-    x: tilemap::TILE,
-    y: tilemap::TILE,
-  });
+  let (map_type, tile_size) = (
+    TilemapType::Square,
+    TilemapTileSize { x: tilemap::TILE, y: tilemap::TILE },
+  );
   let grid_size = tile_size.into();
 
   commands.entity(tilemap).insert(TilemapBundle {

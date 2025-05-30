@@ -9,7 +9,6 @@ use crate::{
 pub fn plugin(app: &mut App) {
   app
     .register_type::<Laser>()
-    .add_systems(PreUpdate, clear_laser)
     .add_systems(Update, (spawn.in_set(SpawnSet), attack));
 }
 

@@ -31,6 +31,7 @@ fn spawn(
     commands
       .entity(entity)
       .insert((
+        physics::projectile(),
         Sensor::new(Damage(damage)),
         Collider::circle(radius),
         Lifetime::from_secs(0.25),
