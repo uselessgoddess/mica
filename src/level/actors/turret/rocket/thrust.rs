@@ -1,0 +1,67 @@
+use {
+  super::MissileMetadata,
+  crate::{
+    level::{Follow, Lifetime, SpawnSet},
+    prelude::*,
+  },
+};
+
+pub fn plugin(app: &mut App) {
+  app
+    .register_type::<Thrust>()
+    .add_systems(Update, (spawn.in_set(SpawnSet), clear));
+}
+
+#[derive(Debug, Component, Reflect, Copy, Clone)]
+pub struct Thrust {
+  pub thrust: f32,
+  pub fuel: f32,
+}
+
+impl Default for Thrust {
+  fn default() -> Self {
+    Self { thrust: 10000.0, fuel: 1.0 }
+  }
+}
+
+#[derive(Component)]
+pub struct ThrustEffect(Entity);
+
+fn spawn(
+  // requires `MissileMetadata` to satisfy system ordering
+  query: Query<
+    (Entity, &Thrust, &MissileMetadata, &Transform2D),
+    Added<MissileMetadata>,
+  >,
+  mut commands: Commands,
+) {
+  for (entity, &thrust, metadata, &transform) in query.iter() {
+    let contrail = metadata.contrail.clone();
+    commands.queue(move |world: &mut World| {
+      let Ok(mut parent) = world.get_entity_mut(entity) else { return };
+
+      let mut target = Entity::PLACEHOLDER;
+      parent.with_children(|parent| {
+        target = parent.spawn(Transform2D::from_xy(0.0, -10.0)).id();
+      });
+
+      world.spawn((
+        Name::new("Contrail"),
+        (transform, Follow(target), ThrustEffect(entity)),
+        Lifetime::from_secs(thrust.fuel + 10.0).despawn(),
+        ParticleEffect::new(contrail),
+      ));
+    });
+  }
+}
+
+fn clear(
+  mut query: Query<(&ThrustEffect, &mut EffectSpawner)>,
+  thrusts: Query<&Thrust>,
+) {
+  for (&ThrustEffect(parent), mut spawner) in query.iter_mut() {
+    if let Ok(Thrust { fuel: ..=0.0, .. }) | Err(_) = thrusts.get(parent) {
+      spawner.active = false;
+    }
+  }
+}

@@ -1,0 +1,72 @@
+use crate::{
+  level::{
+    Damage, SpawnSet,
+    turret::{Cooldown, FollowTarget, Fov, Target},
+  },
+  prelude::*,
+};
+
+pub fn plugin(app: &mut App) {
+  app
+    .register_type::<Laser>()
+    .add_systems(Update, (spawn.in_set(SpawnSet), attack));
+}
+
+#[derive(Component, Reflect, Default)]
+#[require(super::Turret)]
+pub struct Laser;
+
+fn spawn(
+  query: Query<Entity, Added<Laser>>,
+  mut commands: Commands,
+  mut meshes: ResMut<Assets<Mesh>>,
+  mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+  for entity in query.iter() {
+    let mesh = meshes.add(Circle::new(tilemap::TILE * 0.25));
+    let material = materials.add(Color::srgb(0.0, 0.75, 0.25));
+    commands
+      .entity(entity)
+      .insert(Name::new("Laser"))
+      .insert((Mesh2d(mesh), MeshMaterial2d(material)))
+      .insert((Fov::new(15.0), FollowTarget { speed: 1.0 }));
+  }
+}
+
+fn clear_laser(turrets: Query<&Children, With<Laser>>, mut commands: Commands) {
+  for children in turrets.iter() {
+    for &child in children.iter() {
+      commands.entity(child).despawn_recursive();
+    }
+  }
+}
+
+fn attack(
+  turrets: Query<(&Transform2D, &Target, &Cooldown, Option<&Fov>), With<Laser>>,
+  mut commands: Commands,
+  time: Res<Time>,
+) {
+  let damage = Damage(10.0 * time.delta_secs());
+
+  for (&transform, &Target { entity, target, .. }, cooldown, fov) in
+    turrets.iter()
+  {
+    if let Some(fov) = fov
+      && !fov.in_fov(transform, target)
+    {
+      continue;
+    }
+
+    if let Some(entity) = entity
+      && cooldown.allow()
+    {
+      commands.trigger_targets(damage, entity);
+
+      Shapes(&mut commands)
+        .line(transform.translation, target)
+        .color(Color::srgb(0.0, 5.0, 3.0))
+        .width(0.5)
+        .build();
+    }
+  }
+}

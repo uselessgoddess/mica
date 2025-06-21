@@ -1,0 +1,189 @@
+use {
+  super::{Explosion, thrust::Thrust},
+  crate::{
+    level::{ChildOf, Death, Lifetime, Projectile, SpawnSet, turret::Target},
+    prelude::{core::Sensor, *},
+  },
+};
+
+pub fn plugin(app: &mut App) {
+  register(app)
+    .add_systems(
+      Update,
+      (spawn.in_set(SpawnSet), thrust, guide, fuse, designate),
+    )
+    .add_systems(Update, gizmos.run_if(in_debug(D::L2)))
+    .add_observer(on_affect)
+    .add_observer(on_death);
+}
+
+fn register(app: &mut App) -> &mut App {
+  app
+    .register_type::<Fuse>()
+    .register_type::<Flaps>()
+    .register_type::<MissileMetadata>()
+}
+
+#[derive(Component, Reflect)]
+pub struct Flaps(f32);
+
+#[derive(Component, Reflect)]
+pub struct Fuse {
+  /// Radio trigger radius
+  pub sens: f32,
+  /// Time elapsed to fuse after ran out of fuel
+  pub time: f32,
+}
+
+#[derive(Component, Reflect)]
+#[require(Projectile, Thrust, Flaps)]
+pub struct Missile {
+  pub target: Vec2,
+  /// Explosion radius
+  pub radius: f32,
+}
+
+impl Default for Flaps {
+  fn default() -> Self {
+    Self(10000.0)
+  }
+}
+
+#[derive(Component, Reflect, Clone)]
+pub struct MissileMetadata {
+  pub explosion: Handle<EffectAsset>,
+  pub contrail: Handle<EffectAsset>,
+}
+
+fn spawn(
+  query: Query<Entity, Added<Missile>>,
+  mut commands: Commands,
+  mut meshes: ResMut<Assets<Mesh>>,
+  mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+  let (width, height) = (tilemap::TILE * 0.12, tilemap::TILE * 0.25);
+
+  for entity in query.iter() {
+    let mesh = meshes.add(Rectangle::new(width, height));
+    let material = materials.add(Color::srgb(0.35, 0.35, 0.35));
+
+    commands.queue(move |world: &mut World| {
+      let Ok(mut entity) = world.get_entity_mut(entity) else { return };
+      entity
+        .insert((
+          RigidBody::Dynamic,
+          physics::projectile(),
+          Sensor::none(false),
+          ExternalForce::default().with_persistence(false),
+          ExternalTorque::default().with_persistence(false),
+          Collider::rectangle(width, height),
+        ))
+        .insert((LinearDamping(0.3), AngularDamping(2.5)))
+        .insert((Mesh2d(mesh.clone()), MeshMaterial2d(material.clone())));
+    });
+  }
+}
+
+fn fuse(
+  query: Query<(Entity, &Fuse, &Missile, &Transform2D)>,
+  mut commands: Commands,
+) {
+  for (entity, fuse, missile, Transform2D { translation, .. }) in query.iter() {
+    if translation.distance(missile.target) < fuse.sens {
+      commands.entity(entity).trigger(Death);
+    }
+  }
+}
+
+fn thrust(
+  mut query: Query<(
+    Entity,
+    &Transform2D,
+    &Fuse,
+    &mut Thrust,
+    &mut ExternalForce,
+  )>,
+  mut commands: Commands,
+  time: Res<Time>,
+) {
+  let delta = time.delta_secs();
+  for (entity, transform, fuse, mut thrust, mut force) in query.iter_mut() {
+    // Fuel reach zero level
+    if thrust.fuel >= 0.0 && thrust.fuel - delta < 0.0 {
+      commands.entity(entity).try_insert(Lifetime::from_secs(fuse.time));
+    }
+    if thrust.fuel < 0.0 {
+      continue;
+    } else {
+      thrust.fuel -= time.delta_secs();
+    }
+    force.set_force(transform.up() * thrust.thrust);
+  }
+}
+
+fn guide(
+  mut query: Query<(&Flaps, &Missile, &Transform2D, &mut ExternalTorque)>,
+) {
+  for (flaps, missile, transform, mut torque) in query.iter_mut() {
+    let to_target =
+      (missile.target - transform.translation).normalize_or_zero();
+    let angle = transform.up().angle_to(to_target);
+
+    torque.set_torque(angle.signum() * flaps.0);
+  }
+}
+
+fn designate(
+  mut query: Query<(&mut Missile, &ChildOf)>,
+  turrets: Query<&Target>,
+) {
+  for (mut missile, &ChildOf(parent)) in query.iter_mut() {
+    if let Ok(Target { target, .. }) = turrets.get(parent).copied() {
+      missile.target = target;
+    }
+  }
+}
+
+fn gizmos(mut query: Query<(&Transform2D, &Missile)>, mut gizmos: Gizmos) {
+  for (transform, missile) in query.iter_mut() {
+    gizmos.line_gradient_2d(
+      transform.translation,
+      missile.target,
+      Color::srgb(0.0, 1.0, 0.0),
+      Color::srgb(0.0, 0.0, 1.0),
+    );
+  }
+}
+
+fn on_affect(
+  trigger: Trigger<Affect>,
+  query: Query<(), With<Missile>>,
+  mut commands: Commands,
+) {
+  let (entity, _) = trigger.read_event();
+
+  if query.get(entity).is_ok() {
+    commands.entity(entity).trigger(Death);
+  }
+}
+
+fn on_death(
+  trigger: Trigger<Death>,
+  query: Query<(&Transform2D, &Missile, &MissileMetadata)>,
+  mut commands: Commands,
+) {
+  let (entity, _) = trigger.read_event();
+
+  if let Ok((&transform, missile, MissileMetadata { explosion, .. })) =
+    query.get(entity)
+  {
+    commands
+      .spawn((transform, Explosion { radius: missile.radius, damage: 100.0 }));
+    commands.spawn((
+      transform,
+      Lifetime::from_secs(1.0).despawn(),
+      ParticleEffect::new(explosion.clone()),
+    ));
+    commands.entity(entity).despawn_recursive();
+  }
+}

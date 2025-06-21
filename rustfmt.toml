@@ -2,6 +2,7 @@ version = "Two"
 
 imports_granularity = "One"
 use_small_heuristics = "Max"
+use_field_init_shorthand = true
 
 tab_spaces = 2
 max_width = 80
